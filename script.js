@@ -13,18 +13,48 @@ function getValue(id) {
 
 function collectFormData() {
   return {
+    lpType: getValue("lpType"),
     businessName: getValue("businessName"),
     target: getValue("target"),
     strengths: getValue("strengths"),
     problemsSolved: getValue("problemsSolved"),
     results: getValue("results"),
-    characterImage: getValue("characterImage"),
+    characterGender: getValue("characterGender"),
+    characterRole: getValue("characterRole"),
+    characterPersonality: getValue("characterPersonality"),
+    characterAppearance: getValue("characterAppearance"),
     tone: getValue("tone"),
     colorImage: getValue("colorImage"),
   };
 }
 
+function buildCharacterDesc(data) {
+  return `${data.characterGender}・${data.characterRole}・${data.characterPersonality}・${data.characterAppearance}`;
+}
+
 function buildStory(data) {
+  const char = buildCharacterDesc(data);
+
+  if (data.lpType === "採用") {
+    return [
+      "【1コマ目：共感（求職者の悩み）】",
+      `${data.target}が、${data.problemsSolved}に関する悩みを抱えている場面。`,
+      "転職・就職への不安やストレスを感じている様子を描写する。",
+      "",
+      "【2コマ目：出会い（職場との出会い）】",
+      `${data.businessName}を知るきっかけが生まれ、${data.strengths}に惹かれる。`,
+      "まだ少し不安はあるが、ここで働いてみたくなる流れにする。",
+      "",
+      "【3コマ目：体験（職場の雰囲気）】",
+      `${char}の案内で職場を体験し、不安が解消されていく。`,
+      `${data.results}などの実績が安心材料として伝わる。`,
+      "",
+      "【4コマ目：未来（理想の働き方）】",
+      `${data.problemsSolved}が解決され、生き生きと働く姿を描く。`,
+      `${data.businessName}へ応募・問い合わせしたくなる締めにする。`,
+    ].join("\n");
+  }
+
   return [
     "【1コマ目：共感（悩みの提示）】",
     `${data.target}が、${data.problemsSolved}に関する悩みを抱えている場面。`,
@@ -35,7 +65,7 @@ function buildStory(data) {
     "まだ少し不安はあるが、試してみたくなる流れにする。",
     "",
     "【3コマ目：体験（変化の実感）】",
-    `${data.characterImage}の案内でサービスを体験し、悩みが軽くなる。`,
+    `${char}の案内でサービスを体験し、悩みが軽くなる。`,
     `${data.results}などの実績が安心材料として伝わる。`,
     "",
     "【4コマ目：未来（理想の状態）】",
@@ -45,7 +75,18 @@ function buildStory(data) {
 }
 
 function buildPanelPrompts(data) {
-  const common = `カラー漫画、縦読み4コマLP、${data.tone}なトーン、${data.colorImage}、キャラクター設定: ${data.characterImage}`;
+  const char = buildCharacterDesc(data);
+  const common = `カラー漫画、縦読み4コマLP、${data.tone}なトーン、${data.colorImage}、キャラクター設定: ${char}`;
+
+  if (data.lpType === "採用") {
+    return [
+      `【1コマ目】${common}。ターゲットは${data.target}。転職・就職に悩む日常シーン。`,
+      `【2コマ目】${common}。${data.businessName}との出会いの場面。${data.strengths}が自然に伝わる演出。`,
+      `【3コマ目】${common}。職場体験シーン。${data.problemsSolved}が解消へ向かう様子。${data.results}を反映。`,
+      `【4コマ目】${common}。生き生きと働く未来。${data.businessName}に応募したくなる前向きな締め。`,
+    ];
+  }
+
   return [
     `【1コマ目】${common}。ターゲットは${data.target}。悩みで困っている日常シーン。`,
     `【2コマ目】${common}。${data.businessName}との出会いの場面。${data.strengths}が自然に伝わる演出。`,
@@ -55,6 +96,14 @@ function buildPanelPrompts(data) {
 }
 
 function buildCatchCopies(data) {
+  if (data.lpType === "採用") {
+    return [
+      `1. 「${data.problemsSolved}に悩む${data.target}へ。${data.businessName}で理想の働き方を。」`,
+      `2. 「${data.strengths}が整った${data.businessName}。${data.results}が安心の証。」`,
+      `3. 「もう妥協しない。${data.problemsSolved}に悩むあなたに、${data.businessName}という選択肢を。」`,
+    ].join("\n");
+  }
+
   return [
     `1. 「${data.problemsSolved}に悩む${data.target}へ。${data.businessName}が毎日を変える。」`,
     `2. 「${data.strengths}で選ばれる${data.businessName}。${data.results}が安心の理由。」`,
@@ -63,6 +112,33 @@ function buildCatchCopies(data) {
 }
 
 function buildClaudePrompt(data) {
+  const char = buildCharacterDesc(data);
+
+  if (data.lpType === "採用") {
+    return `あなたは採用LP制作のプロのコピーライターです。
+以下のヒアリング情報をもとに、求職者向け縦読み4コマ漫画採用LPの提案を作成してください。
+
+【店名・業種】${data.businessName}
+【ターゲット求職者】${data.target}
+【職場の強み・特徴】${data.strengths}
+【解決できる悩み（求職者の）】${data.problemsSolved}
+【実績・数字】${data.results}
+【キャラクター】${char}
+【トーン】${data.tone}
+【カラーイメージ】${data.colorImage}
+
+以下を出力してください：
+
+## 4コマ漫画のセリフ案
+各コマに2〜3個の吹き出しセリフを、求職者に刺さる自然な日本語で提案してください。
+
+## キャッチコピー（5パターン）
+転職・就職を考える求職者の心に刺さる、短くて力強いキャッチコピーを5つ。
+
+## 採用LP構成アドバイス
+この職場の魅力を最大限に伝える採用LP構成の提案（3点）。`;
+  }
+
   return `あなたは漫画LP制作のプロのコピーライターです。
 以下のヒアリング情報をもとに、飲食店・地元ビジネス向けの縦読み4コマ漫画LPの改善提案とセリフ案を作成してください。
 
@@ -71,7 +147,7 @@ function buildClaudePrompt(data) {
 【強み・特徴】${data.strengths}
 【解決できる悩み】${data.problemsSolved}
 【実績・数字】${data.results}
-【キャラクター】${data.characterImage}
+【キャラクター】${char}
 【トーン】${data.tone}
 【カラーイメージ】${data.colorImage}
 
