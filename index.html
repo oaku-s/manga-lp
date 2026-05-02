@@ -17,6 +17,14 @@
         <h2>ヒアリングフォーム</h2>
         <form id="hearing-form" class="form-grid">
         
+          <label>
+            <span>LP種別</span>
+            <select id="lpType" required>
+              <option value="">選択してください</option>
+              <option value="集客">集客LP（お客様向け）</option>
+              <option value="採用">採用LP（求職者向け）</option>
+            </select>
+          </label>
 
           <label>
             <span>業種・店名</span>
@@ -44,8 +52,23 @@
           </label>
 
           <label>
-            <span>キャラクターのイメージ</span>
-            <textarea id="characterImage" required rows="3" placeholder="例：明るく親身な女性施術師、安心感のある笑顔"></textarea>
+            <span>キャラクターの性別・年齢</span>
+            <input type="text" id="characterGender" required placeholder="例：30代男性" />
+          </label>
+          
+          <label>
+            <span>キャラクターの役割</span>
+            <input type="text" id="characterRole" required placeholder="例：店主／スタッフ／マスコット" />
+          </label>
+          
+          <label>
+            <span>キャラクターの性格・口調</span>
+            <input type="text" id="characterPersonality" required placeholder="例：元気でフレンドリー、関西弁" />
+          </label>
+          
+          <label>
+            <span>キャラクターの見た目</span>
+            <input type="text" id="characterAppearance" required placeholder="例：坊主頭・赤いエプロン・がっしり体型" />
           </label>
 
           <label>
