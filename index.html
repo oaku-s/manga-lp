@@ -16,11 +16,7 @@
       <section class="card">
         <h2>ヒアリングフォーム</h2>
         <form id="hearing-form" class="form-grid">
-          <label>
-            <span>Google Gemini APIキー</span>
-            <input type="password" id="apiKey" placeholder="AIza..." autocomplete="off" />
-            <small class="help-text">画像生成時のみ利用します。ブラウザ内で入力値をそのままGemini APIへ送信します。</small>
-          </label>
+        
 
           <label>
             <span>業種・店名</span>
@@ -100,11 +96,10 @@
 
         <article class="output-block">
           <div class="output-head">
-            <h3>4. Gemini生成画像（縦読み4コマ）</h3>
-            <button type="button" class="copy-btn" id="downloadImageButton" hidden>画像を開く</button>
+            <h3>4. Claude AIによる分析・提案</h3>
+            <button type="button" class="copy-btn" data-copy-target="claudeOutput">コピー</button>
           </div>
-          <p id="imageStatus" class="status-text">APIキーを入力すると、文案とあわせて画像も生成できます。</p>
-          <img id="generatedImage" class="generated-image" alt="生成された縦読み4コマ画像" hidden />
+          <pre id="claudeOutput" class="output-text"></pre>
         </article>
       </section>
     </main>
