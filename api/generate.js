@@ -8,16 +8,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "APIキーが設定されていません" });
   }
 
-  const { prompt, imageBase64, imageMediaType } = req.body;
+  const { prompt, imageBase64, imageMediaType, mode } = req.body;
   if (!prompt) {
     return res.status(400).json({ error: "promptが必要です" });
   }
 
   try {
-    // メッセージの中身を組み立て
     const userContent = [];
 
-    // 画像があれば追加
     if (imageBase64 && imageMediaType) {
       userContent.push({
         type: "image",
@@ -29,11 +27,9 @@ export default async function handler(req, res) {
       });
     }
 
-    // テキストプロンプトを追加
-    userContent.push({
-      type: "text",
-      text: prompt,
-    });
+    userContent.push({ type: "text", text: prompt });
+
+    const maxTokens = mode === "lp" ? 4000 : 2000;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -44,13 +40,8 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 2000,
-        messages: [
-          {
-            role: "user",
-            content: userContent,
-          },
-        ],
+        max_tokens: maxTokens,
+        messages: [{ role: "user", content: userContent }],
       }),
     });
 
