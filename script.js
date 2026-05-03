@@ -11,6 +11,24 @@ function getValue(id) {
   return element ? element.value.trim() : "";
 }
 
+async function getImageData() {
+  const input = document.getElementById("referenceImage");
+  if (!input || !input.files || !input.files[0]) return null;
+
+  const file = input.files[0];
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      const base64 = result.split(",")[1];
+      const mediaType = file.type;
+      resolve({ base64, mediaType });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function collectFormData() {
   return {
     lpType: getValue("lpType"),
@@ -111,12 +129,13 @@ function buildCatchCopies(data) {
   ].join("\n");
 }
 
-function buildClaudePrompt(data) {
+function buildClaudePrompt(data, hasImage) {
   const char = buildCharacterDesc(data);
+  const imageNote = hasImage ? "\n※添付画像を参考にキャラクターの見た目・雰囲気を反映してください。" : "";
 
   if (data.lpType === "採用") {
     return `あなたは採用LP制作のプロのコピーライターです。
-以下のヒアリング情報をもとに、求職者向け縦読み4コマ漫画採用LPの提案を作成してください。
+以下のヒアリング情報をもとに、求職者向け縦読み4コマ漫画採用LPの提案を作成してください。${imageNote}
 
 【店名・業種】${data.businessName}
 【ターゲット求職者】${data.target}
@@ -140,7 +159,7 @@ function buildClaudePrompt(data) {
   }
 
   return `あなたは漫画LP制作のプロのコピーライターです。
-以下のヒアリング情報をもとに、飲食店・地元ビジネス向けの縦読み4コマ漫画LPの改善提案とセリフ案を作成してください。
+以下のヒアリング情報をもとに、飲食店・地元ビジネス向けの縦読み4コマ漫画LPの改善提案とセリフ案を作成してください。${imageNote}
 
 【店名・業種】${data.businessName}
 【ターゲット】${data.target}
@@ -163,11 +182,17 @@ function buildClaudePrompt(data) {
 この店舗の強みを最大限に活かすLP構成の提案（3点）。`;
 }
 
-async function callClaudeAPI(prompt) {
+async function callClaudeAPI(prompt, imageData) {
+  const body = { prompt };
+  if (imageData) {
+    body.imageBase64 = imageData.base64;
+    body.imageMediaType = imageData.mediaType;
+  }
+
   const response = await fetch("/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify(body),
   });
 
   const data = await response.json();
@@ -182,17 +207,20 @@ async function callClaudeAPI(prompt) {
 async function renderOutputs() {
   const data = collectFormData();
   const panelPrompts = buildPanelPrompts(data);
+  const imageData = await getImageData();
 
   storyOutput.textContent = buildStory(data);
   promptOutput.textContent = panelPrompts.join("\n\n");
   copyOutput.textContent = buildCatchCopies(data);
   outputSection.hidden = false;
 
-  claudeOutput.textContent = "Claude AIが分析中...";
+  claudeOutput.textContent = imageData
+    ? "画像を読み込んでClaude AIが分析中..."
+    : "Claude AIが分析中...";
 
   try {
-    const claudePrompt = buildClaudePrompt(data);
-    const result = await callClaudeAPI(claudePrompt);
+    const claudePrompt = buildClaudePrompt(data, !!imageData);
+    const result = await callClaudeAPI(claudePrompt, imageData);
     claudeOutput.textContent = result;
   } catch (error) {
     claudeOutput.textContent = `エラー: ${error.message}`;
