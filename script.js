@@ -437,7 +437,7 @@ if (generateLpButton) {
 if (downloadLpButton) {
   downloadLpButton.addEventListener("click", () => {
     if (!generatedLpHtml) return;
-    const blob = new Blob([generatedLpHtml], { type: "text/html;charset=utf-8" });
+    const blob = new Blob(["\uFEFF" + generatedLpHtml], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
