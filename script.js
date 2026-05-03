@@ -19,8 +19,7 @@ async function getImageData() {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
-      const result = reader.result;
-      const base64 = result.split(",")[1];
+      const base64 = reader.result.split(",")[1];
       const mediaType = file.type;
       resolve({ base64, mediaType });
     };
@@ -48,6 +47,38 @@ function collectFormData() {
 
 function buildCharacterDesc(data) {
   return `${data.characterGender}・${data.characterRole}・${data.characterPersonality}・${data.characterAppearance}`;
+}
+
+// MarkdownをHTMLに変換
+function markdownToHtml(text) {
+  return text
+    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+    .replace(/^> (.+)$/gm, "<blockquote>$1</blockquote>")
+    .replace(/^\*\*(.+)\*\*$/gm, "<strong>$1</strong>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/^---$/gm, "<hr>")
+    .replace(/\n{2,}/g, "</p><p>")
+    .replace(/^(?!<[h|b|p|hr])(.+)$/gm, (match) => {
+      if (match.trim() === "") return "";
+      if (match.startsWith("<")) return match;
+      return match;
+    })
+    .split("\n")
+    .map((line) => {
+      if (
+        line.startsWith("<h2>") ||
+        line.startsWith("<h3>") ||
+        line.startsWith("<blockquote>") ||
+        line.startsWith("<hr>") ||
+        line.trim() === ""
+      ) {
+        return line;
+      }
+      return line;
+    })
+    .join("\n")
+    .replace(/\n/g, "<br>");
 }
 
 function buildStory(data) {
@@ -196,12 +227,23 @@ async function callClaudeAPI(prompt, imageData) {
   });
 
   const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || "APIエラーが発生しました");
-  }
-
+  if (!response.ok) throw new Error(data.error || "APIエラーが発生しました");
   return data.result;
+}
+
+function setClaudeLoading(hasImage) {
+  claudeOutput.className = "output-text";
+  claudeOutput.innerHTML = `<span class="spinner"></span>${hasImage ? "画像を読み込んでClaude AIが分析中..." : "Claude AIが分析中..."}`;
+}
+
+function setClaudeResult(text) {
+  claudeOutput.className = "claude-result";
+  claudeOutput.innerHTML = markdownToHtml(text);
+}
+
+function setClaudeError(message) {
+  claudeOutput.className = "output-text";
+  claudeOutput.textContent = `エラー: ${message}`;
 }
 
 async function renderOutputs() {
@@ -214,16 +256,14 @@ async function renderOutputs() {
   copyOutput.textContent = buildCatchCopies(data);
   outputSection.hidden = false;
 
-  claudeOutput.textContent = imageData
-    ? "画像を読み込んでClaude AIが分析中..."
-    : "Claude AIが分析中...";
+  setClaudeLoading(!!imageData);
 
   try {
     const claudePrompt = buildClaudePrompt(data, !!imageData);
     const result = await callClaudeAPI(claudePrompt, imageData);
-    claudeOutput.textContent = result;
+    setClaudeResult(result);
   } catch (error) {
-    claudeOutput.textContent = `エラー: ${error.message}`;
+    setClaudeError(error.message);
   }
 
   outputSection.scrollIntoView({ behavior: "smooth", block: "start" });
