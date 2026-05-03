@@ -51,34 +51,71 @@ function buildCharacterDesc(data) {
 
 // MarkdownをHTMLに変換
 function markdownToHtml(text) {
-  return text
-    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-    .replace(/^> (.+)$/gm, "<blockquote>$1</blockquote>")
-    .replace(/^\*\*(.+)\*\*$/gm, "<strong>$1</strong>")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/^---$/gm, "<hr>")
-    .replace(/\n{2,}/g, "</p><p>")
-    .replace(/^(?!<[h|b|p|hr])(.+)$/gm, (match) => {
-      if (match.trim() === "") return "";
-      if (match.startsWith("<")) return match;
-      return match;
-    })
-    .split("\n")
-    .map((line) => {
-      if (
-        line.startsWith("<h2>") ||
-        line.startsWith("<h3>") ||
-        line.startsWith("<blockquote>") ||
-        line.startsWith("<hr>") ||
-        line.trim() === ""
-      ) {
-        return line;
+  const lines = text.split("\n");
+  const result = [];
+  let inTable = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+
+    // テーブル行をスキップ（|---|形式）
+    if (/^\|[-|\s]+\|$/.test(line)) {
+      inTable = true;
+      continue;
+    }
+
+    // テーブル行を変換
+    if (line.startsWith("|") && line.endsWith("|")) {
+      const cells = line.split("|").filter((c) => c.trim() !== "");
+      if (!inTable) {
+        result.push("<table class='md-table'><thead><tr>" +
+          cells.map((c) => `<th>${c.trim()}</th>`).join("") +
+          "</tr></thead><tbody>");
+        inTable = true;
+      } else {
+        result.push("<tr>" +
+          cells.map((c) => `<td>${c.trim()}</td>`).join("") +
+          "</tr>");
       }
-      return line;
-    })
-    .join("\n")
-    .replace(/\n/g, "<br>");
+      continue;
+    } else if (inTable) {
+      result.push("</tbody></table>");
+      inTable = false;
+    }
+
+    // 見出し
+    if (/^### (.+)$/.test(line)) {
+      result.push(line.replace(/^### (.+)$/, "<h3>$1</h3>"));
+    } else if (/^## (.+)$/.test(line)) {
+      result.push(line.replace(/^## (.+)$/, "<h2>$1</h2>"));
+    } else if (/^# (.+)$/.test(line)) {
+      result.push(line.replace(/^# (.+)$/, "<h2>$1</h2>"));
+    }
+    // 引用
+    else if (/^> (.+)$/.test(line)) {
+      result.push(line.replace(/^> (.+)$/, "<blockquote>$1</blockquote>"));
+    } else if (line === ">") {
+      result.push("<blockquote>&nbsp;</blockquote>");
+    }
+    // 区切り線
+    else if (/^---$/.test(line)) {
+      result.push("<hr>");
+    }
+    // 空行
+    else if (line.trim() === "") {
+      result.push("<br>");
+    }
+    // 通常行
+    else {
+      // インライン装飾
+      line = line.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+      result.push(line);
+    }
+  }
+
+  if (inTable) result.push("</tbody></table>");
+
+  return result.join("\n").replace(/\n/g, "<br>");
 }
 
 function buildStory(data) {

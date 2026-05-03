@@ -263,3 +263,20 @@ h3 {
   font-size: 0.82rem;
   overflow-x: auto;
 }
+/* テーブル */
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin: 8px 0;
+}
+.md-table th,
+.md-table td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+}
+.md-table th {
+  background: #f1f5ff;
+  font-weight: 600;
+}
