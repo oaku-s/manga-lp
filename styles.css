@@ -197,3 +197,58 @@ h3 {
     font-size: 1.65rem;
   }
 }
+/* ローディングスピナー */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Claude出力のMarkdown整形 */
+.claude-result {
+  background: #f9fbff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+.claude-result h2 {
+  font-size: 1rem;
+  color: var(--primary);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+  margin: 16px 0 8px;
+}
+.claude-result h2:first-child {
+  margin-top: 0;
+}
+.claude-result h3 {
+  font-size: 0.92rem;
+  margin: 12px 0 4px;
+}
+.claude-result p {
+  margin: 4px 0;
+}
+.claude-result blockquote {
+  border-left: 3px solid var(--primary);
+  margin: 6px 0;
+  padding: 4px 10px;
+  color: var(--muted);
+  background: #f1f5ff;
+  border-radius: 0 6px 6px 0;
+}
+.claude-result hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 12px 0;
+}
