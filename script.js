@@ -335,3 +335,115 @@ document.querySelectorAll(".copy-btn[data-copy-target]").forEach((button) => {
     window.setTimeout(() => { button.textContent = originalText; }, 1200);
   });
 });
+// LP HTML生成
+const generateLpButton = document.getElementById("generateLpButton");
+const downloadLpButton = document.getElementById("downloadLpButton");
+const lpStatus = document.getElementById("lpStatus");
+
+let generatedLpHtml = "";
+
+function buildLpPrompt(data) {
+  const char = buildCharacterDesc(data);
+  const isRecruit = data.lpType === "採用";
+
+  return `あなたはプロのWebデザイナー兼コピーライターです。
+以下のヒアリング情報をもとに、スマホ対応の縦読み漫画LP（HTMLファイル）を1つ生成してください。
+
+【LP種別】${data.lpType}LP
+【店名・業種】${data.businessName}
+【ターゲット】${data.target}
+【強み・特徴】${data.strengths}
+【解決できる悩み】${data.problemsSolved}
+【実績・数字】${data.results}
+【キャラクター】${char}
+【トーン】${data.tone}
+【カラーイメージ】${data.colorImage}
+
+## 出力ルール
+- 完全なHTMLファイルを1つだけ出力してください
+- CSSはstyleタグ内に記述（外部ファイル不要）
+- JavaScriptは不要
+- 漫画画像はプレースホルダー（グレーの縦長ボックス）で代替
+- スマホ幅（max-width: 480px）で中央寄せ
+- 背景は黒またはダークカラーでLP感を出す
+- 以下のセクションを必ず含める：
+
+${isRecruit ? `
+1. ヒーローセクション：求職者の悩みを言語化したキャッチコピー
+2. 4コマ漫画エリア：4つのプレースホルダー画像＋各コマのセリフ
+3. 職場の魅力セクション：強み3つをアイコン付きで
+4. 実績数字セクション：定着率・未経験率などを大きく表示
+5. 店主メッセージセクション
+6. CTAセクション：応募ボタン
+` : `
+1. ヒーローセクション：ターゲットの悩みを言語化したキャッチコピー
+2. 4コマ漫画エリア：4つのプレースホルダー画像＋各コマのセリフ
+3. サービスの強みセクション：強み3つをアイコン付きで
+4. 実績数字セクション：実績を大きく表示
+5. お客様の声セクション（ダミーテキスト）
+6. CTAセクション：問い合わせ・予約ボタン
+`}
+
+HTMLのみ出力してください。説明文や\`\`\`は不要です。`;
+}
+
+if (generateLpButton) {
+  generateLpButton.addEventListener("click", async () => {
+    const data = collectFormData();
+
+    if (!data.lpType || !data.businessName) {
+      lpStatus.textContent = "先にフォームを入力して「生成する」を実行してください。";
+      return;
+    }
+
+    generateLpButton.disabled = true;
+    generateLpButton.textContent = "生成中...";
+    lpStatus.textContent = "Claude AIがLP HTMLを生成中です。少し待ってください...";
+    downloadLpButton.hidden = true;
+
+    try {
+      const imageData = await getImageData();
+      const prompt = buildLpPrompt(data);
+      const body = { prompt, mode: "lp" };
+
+      if (imageData) {
+        body.imageBase64 = imageData.base64;
+        body.imageMediaType = imageData.mediaType;
+      }
+
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.error || "APIエラー");
+
+      generatedLpHtml = result.result;
+      lpStatus.textContent = "LP HTMLの生成が完了しました！ダウンロードして確認してください。";
+      downloadLpButton.hidden = false;
+
+    } catch (error) {
+      lpStatus.textContent = `エラー: ${error.message}`;
+    } finally {
+      generateLpButton.disabled = false;
+      generateLpButton.textContent = "LP HTMLを生成";
+    }
+  });
+}
+
+if (downloadLpButton) {
+  downloadLpButton.addEventListener("click", () => {
+    if (!generatedLpHtml) return;
+    const blob = new Blob([generatedLpHtml], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "lp.html";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
