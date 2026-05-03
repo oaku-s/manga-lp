@@ -252,3 +252,14 @@ h3 {
   border-top: 1px solid var(--border);
   margin: 12px 0;
 }
+/* コードブロックのはみ出し防止 */
+.claude-result pre {
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: #f1f5ff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.82rem;
+  overflow-x: auto;
+}
