@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
     userContent.push({ type: "text", text: prompt });
 
-    const maxTokens = mode === "lp" ? 12000 : 2000;
+    const maxTokens = mode === "lp" ? 12000 : mode === "manga-json" ? 4000 : 2000;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

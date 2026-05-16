@@ -139,6 +139,16 @@
           <p id="lpStatus" class="status-text"></p>
           <button type="button" id="downloadLpButton" class="primary-btn" hidden>HTMLをダウンロード</button>
         </article>
+
+        <article class="output-block">
+          <div class="output-head">
+            <h3>6. 4コマ漫画データを生成</h3>
+            <button type="button" class="primary-btn" id="generateMangaDataButton">4コマデータを生成</button>
+          </div>
+          <p class="help-text">各コマの設計データ（シーン・セリフ・ナレーション・画像プロンプト）をClaude AIが自動生成します。</p>
+          <p id="mangaDataStatus" class="status-text"></p>
+          <div id="mangaCardsContainer" hidden></div>
+        </article>
       </section>
     </main>
 

@@ -447,3 +447,177 @@ if (downloadLpButton) {
   });
 }
 
+// \u2500\u2500 4\u30B3\u30DE\u6F2B\u753B\u30C7\u30FC\u30BF\u81EA\u52D5\u751F\u6210 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+const generateMangaDataButton = document.getElementById("generateMangaDataButton");
+const mangaDataStatus = document.getElementById("mangaDataStatus");
+const mangaCardsContainer = document.getElementById("mangaCardsContainer");
+
+function buildMangaJsonPrompt(data) {
+  const char = buildCharacterDesc(data);
+  const isRecruit = data.lpType === "\u63A1\u7528";
+
+  const panelThemes = isRecruit
+    ? ["\u6C42\u8077\u8005\u306E\u60A9\u307F\u30FB\u8EE2\u8077\u3078\u306E\u4E0D\u5B89", "\u8077\u5834\u3068\u306E\u51FA\u4F1A\u3044\u30FB\u8208\u5473\u3092\u6301\u3064", "\u8077\u5834\u4F53\u9A13\u30FB\u4E0D\u5B89\u306E\u89E3\u6D88", "\u7406\u60F3\u306E\u50CD\u304D\u65B9\u30FB\u5165\u793E\u306E\u6C7A\u610F"]
+    : ["\u30BF\u30FC\u30B2\u30C3\u30C8\u306E\u65E5\u5E38\u306E\u60A9\u307F", "\u30B5\u30FC\u30D3\u30B9\u3068\u306E\u51FA\u4F1A\u3044\u30FB\u8208\u5473\u3092\u6301\u3064", "\u30B5\u30FC\u30D3\u30B9\u4F53\u9A13\u30FB\u5909\u5316\u306E\u5B9F\u611F", "\u60A9\u307F\u89E3\u6D88\u30FB\u660E\u308B\u3044\u672A\u6765"];
+
+  return `\u3042\u306A\u305F\u306F\u6F2B\u753BLP\u5236\u4F5C\u306E\u5C02\u9580\u5BB6\u3067\u3059\u3002\u4EE5\u4E0B\u306E\u30D2\u30A2\u30EA\u30F3\u30B0\u60C5\u5831\u3092\u3082\u3068\u306B\u30014\u30B3\u30DE\u6F2B\u753B\u306E\u8A2D\u8A08\u30C7\u30FC\u30BF\u3092JSON\u5F62\u5F0F\u3067\u751F\u6210\u3057\u3066\u304F\u3060\u3055\u3044\u3002
+
+\u3010LP\u7A2E\u5225\u3011${data.lpType}LP
+\u3010\u5E97\u540D\u30FB\u696D\u7A2E\u3011${data.businessName}
+\u3010\u30BF\u30FC\u30B2\u30C3\u30C8\u3011${data.target}
+\u3010\u5F37\u307F\u30FB\u7279\u5FB4\u3011${data.strengths}
+\u3010\u89E3\u6C7A\u3067\u304D\u308B\u60A9\u307F\u3011${data.problemsSolved}
+\u3010\u5B9F\u7E3E\u30FB\u6570\u5B57\u3011${data.results}
+\u3010\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u3011${char}
+\u3010\u30C8\u30FC\u30F3\u3011${data.tone}
+\u3010\u30AB\u30E9\u30FC\u30A4\u30E1\u30FC\u30B8\u3011${data.colorImage}
+
+## \u51FA\u529B\u5F62\u5F0F
+
+\u4EE5\u4E0B\u306EJSON\u5F62\u5F0F\u306E\u307F\u51FA\u529B\u3057\u3066\u304F\u3060\u3055\u3044\u3002\u8AAC\u660E\u6587\u3084\`\`\`\u306F\u4E0D\u8981\u3067\u3059\u3002
+
+{
+  "panels": [
+    {
+      "panelNumber": 1,
+      "title": "\u30B3\u30DE\u30BF\u30A4\u30C8\u30EB\uFF08\u30C6\u30FC\u30DE\u4F8B\uFF1A${panelThemes[0]}\uFF09",
+      "scene": "\u30B7\u30FC\u30F3\u306E\u8AAC\u660E\uFF08\u5834\u6240\u30FB\u72B6\u6CC1\u30FB\u96F0\u56F2\u6C17\u309250\u6587\u5B57\u7A0B\u5EA6\u3067\uFF09",
+      "dialogue": ["\u30BB\u30EA\u30D51", "\u30BB\u30EA\u30D52"],
+      "narration": "\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u30FB\u5FC3\u7406\u63CF\u5199\uFF0830\u6587\u5B57\u7A0B\u5EA6\uFF09",
+      "imagePrompt": "Image generation prompt in English (describe character, scene, mood, style, color in detail)"
+    },
+    {
+      "panelNumber": 2,
+      "title": "\u30B3\u30DE\u30BF\u30A4\u30C8\u30EB\uFF08\u30C6\u30FC\u30DE\u4F8B\uFF1A${panelThemes[1]}\uFF09",
+      "scene": "\u30B7\u30FC\u30F3\u306E\u8AAC\u660E",
+      "dialogue": ["\u30BB\u30EA\u30D51", "\u30BB\u30EA\u30D52"],
+      "narration": "\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u30FB\u5FC3\u7406\u63CF\u5199",
+      "imagePrompt": "Image generation prompt in English"
+    },
+    {
+      "panelNumber": 3,
+      "title": "\u30B3\u30DE\u30BF\u30A4\u30C8\u30EB\uFF08\u30C6\u30FC\u30DE\u4F8B\uFF1A${panelThemes[2]}\uFF09",
+      "scene": "\u30B7\u30FC\u30F3\u306E\u8AAC\u660E",
+      "dialogue": ["\u30BB\u30EA\u30D51", "\u30BB\u30EA\u30D52", "\u30BB\u30EA\u30D53"],
+      "narration": "\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u30FB\u5FC3\u7406\u63CF\u5199",
+      "imagePrompt": "Image generation prompt in English"
+    },
+    {
+      "panelNumber": 4,
+      "title": "\u30B3\u30DE\u30BF\u30A4\u30C8\u30EB\uFF08\u30C6\u30FC\u30DE\u4F8B\uFF1A${panelThemes[3]}\uFF09",
+      "scene": "\u30B7\u30FC\u30F3\u306E\u8AAC\u660E",
+      "dialogue": ["\u30BB\u30EA\u30D51", "\u30BB\u30EA\u30D52"],
+      "narration": "\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u30FB\u5FC3\u7406\u63CF\u5199",
+      "imagePrompt": "Image generation prompt in English"
+    }
+  ]
+}`;
+}
+
+function renderMangaCards(text) {
+  let jsonText = text.trim();
+  const match = jsonText.match(/```(?:json)?\s*([\s\S]+?)\s*```/);
+  if (match) jsonText = match[1];
+
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonText);
+  } catch {
+    mangaCardsContainer.innerHTML =
+      `<p style="color:red;font-size:0.88rem">JSON\u306E\u30D1\u30FC\u30B9\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002Claude API\u306E\u5FDC\u7B54\u3092\u78BA\u8A8D\u3057\u3066\u304F\u3060\u3055\u3044\u3002</p>` +
+      `<pre class="output-text" style="font-size:0.78rem">${text}</pre>`;
+    mangaCardsContainer.hidden = false;
+    return;
+  }
+
+  const panels = parsed.panels || [];
+  const cardsHtml = panels.map((panel) => {
+    const dialogueHtml = (panel.dialogue || [])
+      .map((s) => `<span class="manga-dialogue-item">\u300C${s}\u300D</span>`)
+      .join("");
+
+    return `<div class="manga-card">
+      <div class="manga-card-header">
+        <span class="manga-panel-num">${panel.panelNumber}\u30B3\u30DE\u76EE</span>
+        <span class="manga-panel-title">${panel.title || ""}</span>
+      </div>
+      <dl class="manga-card-body">
+        <dt>\u30B7\u30FC\u30F3</dt>
+        <dd>${panel.scene || ""}</dd>
+        <dt>\u30BB\u30EA\u30D5</dt>
+        <dd class="manga-dialogue">${dialogueHtml}</dd>
+        <dt>\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3</dt>
+        <dd>${panel.narration || ""}</dd>
+        <dt>\u753B\u50CF\u30D7\u30ED\u30F3\u30D7\u30C8\uFF08\u82F1\u8A9E\uFF09</dt>
+        <dd class="manga-prompt-row">
+          <span id="mangaPrompt${panel.panelNumber}">${panel.imagePrompt || ""}</span>
+          <button type="button" class="copy-btn manga-copy-btn" data-copy-inline="mangaPrompt${panel.panelNumber}">\u30B3\u30D4\u30FC</button>
+        </dd>
+      </dl>
+    </div>`;
+  }).join("");
+
+  mangaCardsContainer.innerHTML = `<div class="manga-cards-grid">${cardsHtml}</div>`;
+  mangaCardsContainer.hidden = false;
+
+  mangaCardsContainer.querySelectorAll(".manga-copy-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const target = document.getElementById(btn.dataset.copyInline);
+      if (!target) return;
+      const original = btn.textContent;
+      try {
+        await navigator.clipboard.writeText(target.textContent || "");
+        btn.textContent = "\u30B3\u30D4\u30FC\u6E08\u307F";
+      } catch {
+        btn.textContent = "\u30B3\u30D4\u30FC\u5931\u6557";
+      }
+      window.setTimeout(() => { btn.textContent = original; }, 1200);
+    });
+  });
+}
+
+if (generateMangaDataButton) {
+  generateMangaDataButton.addEventListener("click", async () => {
+    const data = collectFormData();
+
+    if (!data.lpType || !data.businessName) {
+      mangaDataStatus.textContent = "\u5148\u306B\u30D5\u30A9\u30FC\u30E0\u3092\u5165\u529B\u3057\u3066\u300C\u751F\u6210\u3059\u308B\u300D\u3092\u5B9F\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002";
+      return;
+    }
+
+    generateMangaDataButton.disabled = true;
+    generateMangaDataButton.textContent = "\u751F\u6210\u4E2D...";
+    mangaDataStatus.textContent = "Claude AI\u304C4\u30B3\u30DE\u6F2B\u753B\u30C7\u30FC\u30BF\u3092\u751F\u6210\u4E2D\u3067\u3059...";
+    mangaCardsContainer.hidden = true;
+
+    try {
+      const imageData = await getImageData();
+      const prompt = buildMangaJsonPrompt(data);
+      const body = { prompt, mode: "manga-json" };
+
+      if (imageData) {
+        body.imageBase64 = imageData.base64;
+        body.imageMediaType = imageData.mediaType;
+      }
+
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "API\u30A8\u30E9\u30FC");
+
+      mangaDataStatus.textContent = "4\u30B3\u30DE\u6F2B\u753B\u30C7\u30FC\u30BF\u306E\u751F\u6210\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F\uFF01";
+      renderMangaCards(result.result);
+
+    } catch (error) {
+      mangaDataStatus.textContent = `\u30A8\u30E9\u30FC: ${error.message}`;
+    } finally {
+      generateMangaDataButton.disabled = false;
+      generateMangaDataButton.textContent = "4\u30B3\u30DE\u30C7\u30FC\u30BF\u3092\u751F\u6210";
+    }
+  });
+}
+

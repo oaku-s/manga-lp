@@ -280,3 +280,102 @@ h3 {
   background: #f1f5ff;
   font-weight: 600;
 }
+
+/* 4コマ漫画データカード */
+.manga-cards-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+@media (min-width: 640px) {
+  .manga-cards-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.manga-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.manga-card-header {
+  background: var(--primary);
+  color: #fff;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.manga-panel-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.manga-panel-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.manga-card-body {
+  margin: 0;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.manga-card-body dt {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin-top: 6px;
+}
+
+.manga-card-body dt:first-child {
+  margin-top: 0;
+}
+
+.manga-card-body dd {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.manga-dialogue {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.manga-dialogue-item {
+  background: #f1f5ff;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.82rem;
+}
+
+.manga-prompt-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.manga-prompt-row span {
+  flex: 1;
+  font-size: 0.8rem;
+  color: var(--muted);
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+.manga-copy-btn {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
