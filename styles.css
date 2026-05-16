@@ -379,3 +379,34 @@ h3 {
   flex-shrink: 0;
   margin-top: 1px;
 }
+
+/* 共通キャラクタープロンプト */
+.manga-common-char {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #f1f5ff;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.manga-common-char-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.manga-common-char-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.manga-common-char-text {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+  word-break: break-all;
+  line-height: 1.6;
+}

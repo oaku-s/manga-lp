@@ -503,11 +503,21 @@ function buildMangaJsonPrompt(data) {
   const char = buildCharacterDesc(data);
   const isRecruit = data.lpType === "\u63A1\u7528";
 
-  const panelThemes = isRecruit
-    ? ["\u6C42\u8077\u8005\u306E\u60A9\u307F\u30FB\u8EE2\u8077\u3078\u306E\u4E0D\u5B89", "\u8077\u5834\u3068\u306E\u51FA\u4F1A\u3044\u30FB\u8208\u5473\u3092\u6301\u3064", "\u8077\u5834\u4F53\u9A13\u30FB\u4E0D\u5B89\u306E\u89E3\u6D88", "\u7406\u60F3\u306E\u50CD\u304D\u65B9\u30FB\u5165\u793E\u306E\u6C7A\u610F"]
-    : ["\u30BF\u30FC\u30B2\u30C3\u30C8\u306E\u65E5\u5E38\u306E\u60A9\u307F", "\u30B5\u30FC\u30D3\u30B9\u3068\u306E\u51FA\u4F1A\u3044\u30FB\u8208\u5473\u3092\u6301\u3064", "\u30B5\u30FC\u30D3\u30B9\u4F53\u9A13\u30FB\u5909\u5316\u306E\u5B9F\u611F", "\u60A9\u307F\u89E3\u6D88\u30FB\u660E\u308B\u3044\u672A\u6765"];
+  const purposes = isRecruit
+    ? [
+        "\u6C42\u8077\u8005\u306E\u60A9\u307F\u30FB\u8EE2\u8077\u3078\u306E\u8FF7\u3044\u3092\u63CF\u304F",
+        "\u8077\u5834\u3068\u306E\u51FA\u4F1A\u3044\u30FB\u8208\u5473\u3092\u6301\u3064\u77AC\u9593\u3092\u63CF\u304F",
+        "\u8077\u5834\u4F53\u9A13\u30FB\u8077\u5834\u306E\u9B45\u529B\u3092\u7406\u89E3\u3059\u308B\u5834\u9762\u3092\u63CF\u304F",
+        "\u5165\u793E\u306E\u6C7A\u610F\u30FB\u7406\u60F3\u306E\u50CD\u304D\u65B9\u3078\u306E\u6E80\u8DB3\u3092\u63CF\u304F",
+      ]
+    : [
+        "\u30BF\u30FC\u30B2\u30C3\u30C8\u306E\u65E5\u5E38\u306E\u60A9\u307F\u30FB\u8FF7\u3044\u3092\u63CF\u304F",
+        "\u30B5\u30FC\u30D3\u30B9\u3068\u306E\u51FA\u4F1A\u3044\u30FB\u767A\u898B\u306E\u77AC\u9593\u3092\u63CF\u304F",
+        "\u30B5\u30FC\u30D3\u30B9\u4F53\u9A13\u30FB\u9B45\u529B\u3092\u7406\u89E3\u3059\u308B\u5834\u9762\u3092\u63CF\u304F",
+        "\u60A9\u307F\u89E3\u6D88\u30FB\u6E80\u8DB3\u30FB\u6B21\u306E\u884C\u52D5\u3092\u63CF\u304F",
+      ];
 
-  return `\u3042\u306A\u305F\u306F\u6F2B\u753BLP\u5236\u4F5C\u306E\u5C02\u9580\u5BB6\u3067\u3059\u3002\u4EE5\u4E0B\u306E\u30D2\u30A2\u30EA\u30F3\u30B0\u60C5\u5831\u3092\u3082\u3068\u306B\u30014\u30B3\u30DE\u6F2B\u753B\u306E\u8A2D\u8A08\u30C7\u30FC\u30BF\u3092JSON\u5F62\u5F0F\u3067\u751F\u6210\u3057\u3066\u304F\u3060\u3055\u3044\u3002
+  return `\u3042\u306A\u305F\u306F\u6F2B\u753BLP\u5236\u4F5C\u3068\u753B\u50CF\u751F\u6210\u30D7\u30ED\u30F3\u30D7\u30C8\u8A2D\u8A08\u306E\u5C02\u9580\u5BB6\u3067\u3059\u3002\u4EE5\u4E0B\u306E\u30D2\u30A2\u30EA\u30F3\u30B0\u60C5\u5831\u3092\u3082\u3068\u306B\u30014\u30B3\u30DE\u6F2B\u753B\u306E\u53F0\u672C\u30C7\u30FC\u30BF\u3092JSON\u5F62\u5F0F\u3067\u751F\u6210\u3057\u3066\u304F\u3060\u3055\u3044\u3002
 
 \u3010LP\u7A2E\u5225\u3011${data.lpType}LP
 \u3010\u5E97\u540D\u30FB\u696D\u7A2E\u3011${data.businessName}
@@ -519,43 +529,69 @@ function buildMangaJsonPrompt(data) {
 \u3010\u30C8\u30FC\u30F3\u3011${data.tone}
 \u3010\u30AB\u30E9\u30FC\u30A4\u30E1\u30FC\u30B8\u3011${data.colorImage}
 
+## 4\u30B3\u30DE\u306E\u578B\uFF08\u56FA\u5B9A\uFF09
+- \u30B3\u30DE1\uFF1A\u60A9\u307F\u30FB\u8FF7\u3044\uFF08${purposes[0]}\uFF09
+- \u30B3\u30DE2\uFF1A\u51FA\u4F1A\u3044\u30FB\u767A\u898B\uFF08${purposes[1]}\uFF09
+- \u30B3\u30DE3\uFF1A\u4F53\u9A13\u30FB\u9B45\u529B\u7406\u89E3\uFF08${purposes[2]}\uFF09
+- \u30B3\u30DE4\uFF1A\u6E80\u8DB3\u30FB\u884C\u52D5\uFF08${purposes[3]}\uFF09
+
+## image_prompt \u306E\u4F5C\u6210\u30EB\u30FC\u30EB
+- GPT Image 2\u306B\u305D\u306E\u307E\u307E\u6E21\u305B\u308B\u82F1\u8A9E\u30D7\u30ED\u30F3\u30D7\u30C8\u306B\u3059\u308B
+- \u5FC5\u305A\u542B\u3081\u308B\u8981\u7D20\uFF1A\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u306E\u5916\u898B / \u80CC\u666F\u30FB\u5834\u6240 / \u8868\u60C5\u30FB\u611F\u60C5 / \u69CB\u56F3 / \u30B9\u30BF\u30A4\u30EB / \u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8
+- \u30B9\u30BF\u30A4\u30EB\u6307\u5B9A\u306F\u5FC5\u305A\u542B\u3081\u308B\uFF1Amanga-style illustration, single vertical panel, no text, no speech bubbles, no watermark
+- \u7E26\u95771\u30B3\u30DE\u7528\uFF1Avertical comic panel format, portrait orientation
+- \u30BB\u30EA\u30D5\u30FB\u30C6\u30AD\u30B9\u30C8\u3092\u753B\u50CF\u306B\u542B\u3081\u306A\u3044\uFF1Ano dialogue, no text overlay, no captions
+
+## negative_prompt \u306E\u4F5C\u6210\u30EB\u30FC\u30EB
+- \u82F1\u8A9E\u3067\u8A18\u8FF0\u3059\u308B
+- \u5FC5\u305A\u542B\u3081\u308B\uFF1Atext, speech bubbles, captions, watermark, blurry, low quality, realistic photo, 3D render, multiple panels, horizontal layout, grid layout, collage
+
 ## \u51FA\u529B\u5F62\u5F0F
 
 \u4EE5\u4E0B\u306EJSON\u5F62\u5F0F\u306E\u307F\u51FA\u529B\u3057\u3066\u304F\u3060\u3055\u3044\u3002\u8AAC\u660E\u6587\u3084\`\`\`\u306F\u4E0D\u8981\u3067\u3059\u3002
 
 {
+  "common_character_prompt": "\uFF08\u5168\u30B3\u30DE\u5171\u901A\u306E\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u5916\u898B\u63CF\u5199\u3092\u82F1\u8A9E\u3067\u8A18\u8FF0\u3002\u4F8B\uFF1AA friendly Japanese woman in her 30s, short black hair, wearing a white apron, warm smile, anime-style illustration\uFF09",
   "panels": [
     {
-      "panelNumber": 1,
-      "title": "\u30B3\u30DE\u30BF\u30A4\u30C8\u30EB\uFF08\u30C6\u30FC\u30DE\u4F8B\uFF1A${panelThemes[0]}\uFF09",
+      "panel": 1,
+      "purpose": "${purposes[0]}",
       "scene": "\u30B7\u30FC\u30F3\u306E\u8AAC\u660E\uFF08\u5834\u6240\u30FB\u72B6\u6CC1\u30FB\u96F0\u56F2\u6C17\u309250\u6587\u5B57\u7A0B\u5EA6\u3067\uFF09",
+      "emotion": "\u3053\u306E\u30B3\u30DE\u306E\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u306E\u611F\u60C5\u30FB\u8868\u60C5\uFF08\u4F8B\uFF1A\u56F0\u60D1\u3057\u305F\u8868\u60C5\u3067\u80A9\u3092\u843D\u3068\u3057\u3066\u3044\u308B\uFF09",
       "dialogue": ["\u30BB\u30EA\u30D51", "\u30BB\u30EA\u30D52"],
       "narration": "\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u30FB\u5FC3\u7406\u63CF\u5199\uFF0830\u6587\u5B57\u7A0B\u5EA6\uFF09",
-      "imagePrompt": "Image generation prompt in English (describe character, scene, mood, style, color in detail)"
+      "image_prompt": "manga-style illustration, single vertical panel, no text, no speech bubbles, [common_character_prompt \u306E\u5185\u5BB9], [\u80CC\u666F\u30FB\u5834\u6240\u306E\u63CF\u5199], [\u8868\u60C5\u30FB\u30DD\u30FC\u30BA], [\u69CB\u56F3], [\u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8]. Vertical comic panel format, portrait orientation.",
+      "negative_prompt": "text, speech bubbles, captions, watermark, blurry, low quality, realistic photo, 3D render, multiple panels, horizontal layout, grid layout, collage"
     },
     {
-      "panelNumber": 2,
-      "title": "\u30B3\u30DE\u30BF\u30A4\u30C8\u30EB\uFF08\u30C6\u30FC\u30DE\u4F8B\uFF1A${panelThemes[1]}\uFF09",
+      "panel": 2,
+      "purpose": "${purposes[1]}",
       "scene": "\u30B7\u30FC\u30F3\u306E\u8AAC\u660E",
+      "emotion": "\u3053\u306E\u30B3\u30DE\u306E\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u306E\u611F\u60C5\u30FB\u8868\u60C5",
       "dialogue": ["\u30BB\u30EA\u30D51", "\u30BB\u30EA\u30D52"],
       "narration": "\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u30FB\u5FC3\u7406\u63CF\u5199",
-      "imagePrompt": "Image generation prompt in English"
+      "image_prompt": "manga-style illustration, single vertical panel, no text, no speech bubbles, [character], [background], [emotion], [composition], [color]. Vertical comic panel format, portrait orientation.",
+      "negative_prompt": "text, speech bubbles, captions, watermark, blurry, low quality, realistic photo, 3D render, multiple panels, horizontal layout, grid layout, collage"
     },
     {
-      "panelNumber": 3,
-      "title": "\u30B3\u30DE\u30BF\u30A4\u30C8\u30EB\uFF08\u30C6\u30FC\u30DE\u4F8B\uFF1A${panelThemes[2]}\uFF09",
+      "panel": 3,
+      "purpose": "${purposes[2]}",
       "scene": "\u30B7\u30FC\u30F3\u306E\u8AAC\u660E",
+      "emotion": "\u3053\u306E\u30B3\u30DE\u306E\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u306E\u611F\u60C5\u30FB\u8868\u60C5",
       "dialogue": ["\u30BB\u30EA\u30D51", "\u30BB\u30EA\u30D52", "\u30BB\u30EA\u30D53"],
       "narration": "\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u30FB\u5FC3\u7406\u63CF\u5199",
-      "imagePrompt": "Image generation prompt in English"
+      "image_prompt": "manga-style illustration, single vertical panel, no text, no speech bubbles, [character], [background], [emotion], [composition], [color]. Vertical comic panel format, portrait orientation.",
+      "negative_prompt": "text, speech bubbles, captions, watermark, blurry, low quality, realistic photo, 3D render, multiple panels, horizontal layout, grid layout, collage"
     },
     {
-      "panelNumber": 4,
-      "title": "\u30B3\u30DE\u30BF\u30A4\u30C8\u30EB\uFF08\u30C6\u30FC\u30DE\u4F8B\uFF1A${panelThemes[3]}\uFF09",
+      "panel": 4,
+      "purpose": "${purposes[3]}",
       "scene": "\u30B7\u30FC\u30F3\u306E\u8AAC\u660E",
+      "emotion": "\u3053\u306E\u30B3\u30DE\u306E\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u306E\u611F\u60C5\u30FB\u8868\u60C5",
       "dialogue": ["\u30BB\u30EA\u30D51", "\u30BB\u30EA\u30D52"],
       "narration": "\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u30FB\u5FC3\u7406\u63CF\u5199",
-      "imagePrompt": "Image generation prompt in English"
+      "image_prompt": "manga-style illustration, single vertical panel, no text, no speech bubbles, [character], [background], [emotion], [composition], [color]. Vertical comic panel format, portrait orientation.",
+      "negative_prompt": "text, speech bubbles, captions, watermark, blurry, low quality, realistic photo, 3D render, multiple panels, horizontal layout, grid layout, collage"
     }
   ]
 }`;
@@ -577,34 +613,59 @@ function renderMangaCards(text) {
     return;
   }
 
+  // \u5171\u901A\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u30D7\u30ED\u30F3\u30D7\u30C8
+  const commonCharHtml = parsed.common_character_prompt
+    ? `<div class="manga-common-char">
+        <div class="manga-common-char-head">
+          <span class="manga-common-char-label">\u5171\u901A\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u30D7\u30ED\u30F3\u30D7\u30C8\uFF08\u5168\u30B3\u30DE\u5171\u901A\uFF09</span>
+          <button type="button" class="copy-btn manga-copy-btn" data-copy-inline="mangaCommonChar">\u30B3\u30D4\u30FC</button>
+        </div>
+        <span id="mangaCommonChar" class="manga-common-char-text">${parsed.common_character_prompt}</span>
+      </div>`
+    : "";
+
   const panels = parsed.panels || [];
   const cardsHtml = panels.map((panel) => {
+    const panelNum = panel.panel ?? panel.panelNumber ?? "?";
+    const imagePrompt = panel.image_prompt || panel.imagePrompt || "";
+    const negativePrompt = panel.negative_prompt || "";
+    const title = panel.purpose || panel.title || "";
+
     const dialogueHtml = (panel.dialogue || [])
       .map((s) => `<span class="manga-dialogue-item">\u300C${s}\u300D</span>`)
       .join("");
 
     return `<div class="manga-card">
       <div class="manga-card-header">
-        <span class="manga-panel-num">${panel.panelNumber}\u30B3\u30DE\u76EE</span>
-        <span class="manga-panel-title">${panel.title || ""}</span>
+        <span class="manga-panel-num">${panelNum}\u30B3\u30DE\u76EE</span>
+        <span class="manga-panel-title">${title}</span>
       </div>
       <dl class="manga-card-body">
+        <dt>\u76EE\u7684</dt>
+        <dd>${panel.purpose || ""}</dd>
         <dt>\u30B7\u30FC\u30F3</dt>
         <dd>${panel.scene || ""}</dd>
+        <dt>\u611F\u60C5\u30FB\u8868\u60C5</dt>
+        <dd>${panel.emotion || ""}</dd>
         <dt>\u30BB\u30EA\u30D5</dt>
         <dd class="manga-dialogue">${dialogueHtml}</dd>
         <dt>\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3</dt>
         <dd>${panel.narration || ""}</dd>
         <dt>\u753B\u50CF\u30D7\u30ED\u30F3\u30D7\u30C8\uFF08\u82F1\u8A9E\uFF09</dt>
         <dd class="manga-prompt-row">
-          <span id="mangaPrompt${panel.panelNumber}">${panel.imagePrompt || ""}</span>
-          <button type="button" class="copy-btn manga-copy-btn" data-copy-inline="mangaPrompt${panel.panelNumber}">\u30B3\u30D4\u30FC</button>
+          <span id="mangaPrompt${panelNum}">${imagePrompt}</span>
+          <button type="button" class="copy-btn manga-copy-btn" data-copy-inline="mangaPrompt${panelNum}">\u30B3\u30D4\u30FC</button>
+        </dd>
+        <dt>\u30CD\u30AC\u30C6\u30A3\u30D6\u30D7\u30ED\u30F3\u30D7\u30C8\uFF08\u82F1\u8A9E\uFF09</dt>
+        <dd class="manga-prompt-row">
+          <span id="mangaNegPrompt${panelNum}">${negativePrompt}</span>
+          <button type="button" class="copy-btn manga-copy-btn" data-copy-inline="mangaNegPrompt${panelNum}">\u30B3\u30D4\u30FC</button>
         </dd>
       </dl>
     </div>`;
   }).join("");
 
-  mangaCardsContainer.innerHTML = `<div class="manga-cards-grid">${cardsHtml}</div>`;
+  mangaCardsContainer.innerHTML = `${commonCharHtml}<div class="manga-cards-grid">${cardsHtml}</div>`;
   mangaCardsContainer.hidden = false;
 
   mangaCardsContainer.querySelectorAll(".manga-copy-btn").forEach((btn) => {
