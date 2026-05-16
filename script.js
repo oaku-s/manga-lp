@@ -363,20 +363,73 @@ function buildLpPrompt(data) {
 【カラーイメージ】${data.colorImage}
 
 ## 出力ルール（必ず守ること）
-- DOCTYPE〜</body></html>まで完全に出力する
+- DOCTYPE〜</body></html>まで完全に出力する（末尾まで省略しない）
 - CSSはstyleタグに最低限だけ記述（装飾は最小限）
 - JavaScriptは不要
 - max-width:480px、背景ダーク系
-- 漫画コマはグレーの縦長ボックス（height:280px）で代替
 
 ## セクション構成（この順番・この数だけ）
 1. HERO：キャッチコピー＋サブコピー
 2. キャラクター紹介：${char}の一言紹介
-3. 4コマ漫画（1セットのみ・コマ数=4）：各コマにボックス＋セリフ1〜2行
+3. 縦4コマ漫画（1セットのみ）
 4. ${reasonHead}：アイコン絵文字＋理由テキスト×3
 5. ${voiceLabel}：1〜2件のダミー体験談
 6. CTA：「${ctaLabel}」ボタン
 7. フッター：店名・コピーライト
+
+## 4コマ漫画セクションの実装ルール（厳守）
+- 4コマは必ず縦1列に積み重ねること。横並び・2列・グリッド2列・カード型は禁止
+- grid-template-columns に複数列を指定することは絶対に禁止
+- 各コマの構造：画像エリア（上）→ セリフエリア（下）の順
+- 以下のCSSクラスをそのままstyleタグに含め、HTMLに適用すること
+
+.koma-strip {
+  display: flex;
+  flex-direction: column;
+  border: 3px solid #2e1f0e;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.koma-box {
+  min-height: 320px;
+  border-bottom: 3px solid #2e1f0e;
+  display: flex;
+  flex-direction: column;
+}
+.koma-box:last-child {
+  border-bottom: none;
+}
+.koma-illust {
+  min-height: 220px;
+  background: #ccc;
+}
+.koma-serif {
+  width: 100%;
+  padding: 8px;
+  background: #fff;
+  font-size: 0.9rem;
+}
+
+- HTMLは以下の構造で出力すること（コマ数=4、セリフはヒアリング内容に沿って作成）
+
+<div class="koma-strip">
+  <div class="koma-box">
+    <div class="koma-illust"></div>
+    <div class="koma-serif">（コマ1のセリフ）</div>
+  </div>
+  <div class="koma-box">
+    <div class="koma-illust"></div>
+    <div class="koma-serif">（コマ2のセリフ）</div>
+  </div>
+  <div class="koma-box">
+    <div class="koma-illust"></div>
+    <div class="koma-serif">（コマ3のセリフ）</div>
+  </div>
+  <div class="koma-box">
+    <div class="koma-illust"></div>
+    <div class="koma-serif">（コマ4のセリフ）</div>
+  </div>
+</div>
 
 HTMLのみ出力してください。説明文・コードブロック記号(\`\`\`)は不要です。`;
 }
