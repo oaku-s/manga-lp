@@ -343,6 +343,7 @@ const lpStatus = document.getElementById("lpStatus");
 let generatedLpHtml = "";
 let lastMangaJson = null;
 let lastGeneratedMangaImages = {}; // { [panelNum]: { base64, mediaType } }
+let lastCompositedMangaImages = {}; // { [panelNum]: dataURL（吹き出し合成済み） }
 
 function buildLpPrompt(data) {
   const char = buildCharacterDesc(data);
@@ -436,8 +437,150 @@ function buildLpPrompt(data) {
 HTMLのみ出力してください。説明文・コードブロック記号(\`\`\`)は不要です。`;
 }
 
+// ── Canvas合成：生成済み画像にセリフ吹き出しを焼き込む ─────────────────────────────────
+
+// コマごとの吹き出しレイアウト（x/y は px 固定値、xRatio/yRatio は画像幅・高さに対する比率）
+const bubbleLayouts = {
+  1: { x: 24,            y: 24,             widthRatio: 0.62 }, // 上・左寄り
+  2: { xRatio: 0.26,     y: 24,             widthRatio: 0.68 }, // 上・右寄り
+  3: { x: 24,            yRatio: 0.72,      widthRatio: 0.86 }, // 下・中央（yRatio = 下端基準）
+  4: { x: 24,            y: 24,             widthRatio: 0.86 }, // 上・中央
+};
+
+// 日本語テキストを maxWidth に合わせて折り返す
+function wrapCanvasText(ctx, text, maxWidth) {
+  const lines = [];
+  let line = "";
+  for (const char of text) {
+    const test = line + char;
+    if (ctx.measureText(test).width > maxWidth && line.length > 0) {
+      lines.push(line);
+      line = char;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+// 角丸矩形を描く
+function drawBubbleRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y,     x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h,     x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y,         x + r, y);
+  ctx.closePath();
+}
+
+// 1枚の画像に吹き出し＋セリフを合成して dataURL を返す
+async function compositeImageWithBubbles(panelNum, imgData, dialogues) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width  = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+
+      // 元画像を描画
+      ctx.drawImage(img, 0, 0);
+
+      if (!dialogues || dialogues.length === 0) {
+        resolve(canvas.toDataURL("image/png"));
+        return;
+      }
+
+      // レイアウト計算
+      const layout  = bubbleLayouts[panelNum] || bubbleLayouts[4];
+      const bx      = layout.xRatio != null
+        ? Math.round(layout.xRatio * canvas.width)
+        : layout.x;
+      const bWidth  = Math.round(layout.widthRatio * canvas.width);
+
+      // フォント設定（画像幅に対して相対サイズ）
+      const fontSize = Math.round(canvas.width * 0.038);
+      const lineH    = Math.round(fontSize * 1.55);
+      const padX     = 16;
+      const padY     = 12;
+      const radius   = 18;
+      const gap      = 12;
+      const font     = `bold ${fontSize}px 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', sans-serif`;
+      ctx.font = font;
+
+      // 各吹き出しの折り返し済みテキスト行と高さを計算
+      const bubbles = dialogues.map((text) => {
+        const lines   = wrapCanvasText(ctx, text, bWidth - padX * 2);
+        const bHeight = lines.length * lineH + padY * 2;
+        return { lines, bHeight };
+      });
+
+      // y 起点を計算（yRatio 指定時は下端基準で積み上げ方向に戻す）
+      const totalH = bubbles.reduce((sum, b) => sum + b.bHeight + gap, 0) - gap;
+      let startY;
+      if (layout.yRatio != null) {
+        startY = Math.round(layout.yRatio * canvas.height) - totalH;
+      } else {
+        startY = layout.y;
+      }
+
+      // 吹き出しを上から順に描画
+      let currentY = startY;
+      ctx.textBaseline = "top";
+      bubbles.forEach(({ lines, bHeight }) => {
+        // 白背景・黒枠の角丸矩形
+        ctx.fillStyle   = "rgba(255,255,255,0.93)";
+        ctx.strokeStyle = "#111111";
+        ctx.lineWidth   = Math.max(2, Math.round(canvas.width * 0.004));
+        drawBubbleRect(ctx, bx, currentY, bWidth, bHeight, radius);
+        ctx.fill();
+        ctx.stroke();
+
+        // テキスト
+        ctx.fillStyle = "#111111";
+        ctx.font = font;
+        lines.forEach((line, i) => {
+          ctx.fillText(line, bx + padX, currentY + padY + i * lineH);
+        });
+
+        currentY += bHeight + gap;
+      });
+
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = () => {
+      // 合成失敗時は元画像をそのまま返す
+      resolve(`data:${imgData.mediaType};base64,${imgData.base64}`);
+    };
+    img.src = `data:${imgData.mediaType};base64,${imgData.base64}`;
+  });
+}
+
+// 全コマ分を合成して lastCompositedMangaImages に格納する
+async function buildCompositedImages() {
+  lastCompositedMangaImages = {};
+  if (!lastMangaJson || !lastMangaJson.panels) return;
+  for (let i = 0; i < lastMangaJson.panels.length; i++) {
+    const panel    = lastMangaJson.panels[i];
+    const panelNum = panel.panel ?? panel.panelNumber ?? (i + 1);
+    const imgData  = lastGeneratedMangaImages[panelNum];
+    if (!imgData) continue;
+    const dialogues = Array.isArray(panel.dialogue) ? panel.dialogue : [];
+    lastCompositedMangaImages[panelNum] = await compositeImageWithBubbles(panelNum, imgData, dialogues);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function injectMangaImages(html) {
-  const keys = Object.keys(lastGeneratedMangaImages);
+  // 合成済み画像が4枚揃っている場合のみ差し込む
+  const keys = Object.keys(lastCompositedMangaImages);
   if (keys.length < 4) return html;
 
   const parser = new DOMParser();
@@ -446,40 +589,24 @@ function injectMangaImages(html) {
   const illust = doc.querySelectorAll(".koma-illust");
   illust.forEach((el, idx) => {
     const panelNum = idx + 1;
-    const imgData = lastGeneratedMangaImages[panelNum];
-    if (!imgData) return;
+    const dataUrl  = lastCompositedMangaImages[panelNum];
+    if (!dataUrl) return;
 
     // .koma-num を保持し、残りの子要素を差し替える
     const numEl = el.querySelector(".koma-num");
     el.innerHTML = "";
     if (numEl) el.appendChild(numEl);
 
-    // 画像を追加
+    // 合成済み画像（吹き出し焼き込み済み）を追加
     const img = doc.createElement("img");
-    img.src = `data:${imgData.mediaType};base64,${imgData.base64}`;
-    img.alt = `${panelNum}コマ目`;
+    img.src       = dataUrl;
+    img.alt       = `${panelNum}コマ目`;
     img.className = "koma-generated-image";
     el.appendChild(img);
 
-    // セリフ吹き出しを追加（lastMangaJson の dialogue 配列から取得）
-    const panelData = lastMangaJson && lastMangaJson.panels && lastMangaJson.panels[idx];
-    const dialogues = (panelData && Array.isArray(panelData.dialogue)) ? panelData.dialogue : [];
-    if (dialogues.length > 0) {
-      const bubblesDiv = doc.createElement("div");
-      bubblesDiv.className = "koma-bubbles";
-      dialogues.forEach((line) => {
-        const bubble = doc.createElement("div");
-        bubble.className = "speech-bubble";
-        bubble.textContent = line;
-        bubblesDiv.appendChild(bubble);
-      });
-      el.appendChild(bubblesDiv);
-    }
-
-    // 画像差し込み済みを示すクラスを付与
     el.classList.add("koma-illust-with-image");
 
-    // 画像がある場合は .koma-serif（テキストセリフ行）を非表示にする
+    // .koma-serif（テキストセリフ行）を非表示にする（セリフは画像に焼き込み済み）
     const komaBox = el.closest(".koma-box");
     if (komaBox) {
       const serifEl = komaBox.querySelector(".koma-serif");
@@ -487,38 +614,11 @@ function injectMangaImages(html) {
     }
   });
 
-  // LP HTML内の <style> に必要なCSSを追記
+  // LP HTML内の <style> に最小限のCSSを追記
   const styleEl = doc.querySelector("style");
   const imageCSS = `
-.koma-illust {
-  position: relative;
-  overflow: hidden;
-}
-.koma-generated-image {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-.koma-bubbles {
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  z-index: 3;
-}
-.speech-bubble {
-  background: rgba(255,255,255,0.94);
-  color: #111;
-  border: 2px solid #111;
-  border-radius: 14px;
-  padding: 8px 10px;
-  font-size: 0.78rem;
-  line-height: 1.5;
-  font-weight: 600;
-}
+.koma-illust { overflow: hidden; }
+.koma-generated-image { display: block; width: 100%; height: auto; }
 `;
   if (styleEl) {
     styleEl.textContent += imageCSS;
@@ -566,7 +666,7 @@ if (generateLpButton) {
       if (!response.ok) throw new Error(result.error || "APIエラー");
 
       generatedLpHtml = injectMangaImages(result.result);
-      const injected = Object.keys(lastGeneratedMangaImages).length >= 4;
+      const injected = Object.keys(lastCompositedMangaImages).length >= 4;
       lpStatus.textContent = injected
         ? "LP HTMLの生成が完了しました！生成済み漫画画像を埋め込みました。ダウンロードして確認してください。"
         : "LP HTMLの生成が完了しました！ダウンロードして確認してください。";
@@ -803,6 +903,7 @@ if (generateMangaDataButton) {
     mangaDataStatus.textContent = "Claude AI\u304C4\u30B3\u30DE\u6F2B\u753B\u30C7\u30FC\u30BF\u3092\u751F\u6210\u4E2D\u3067\u3059...";
     lastMangaJson = null;
     lastGeneratedMangaImages = {};
+    lastCompositedMangaImages = {};
     generateImagesButton.hidden = true;
     mangaImagesContainer.innerHTML = "";
     mangaImagesContainer.hidden = true;
@@ -883,6 +984,7 @@ if (generateImagesButton) {
     mangaImagesContainer.hidden = true;
     imageGenStatus.textContent = "";
     lastGeneratedMangaImages = {};
+    lastCompositedMangaImages = {};
 
     const commonChar = lastMangaJson.common_character_prompt || "";
     const panels = lastMangaJson.panels;
@@ -911,7 +1013,11 @@ if (generateImagesButton) {
       }
     }
 
-    imageGenStatus.textContent = `${successCount}/${panels.length}\u679A\u306E\u753B\u50CF\u751F\u6210\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F\u3002`;
+    if (successCount > 0) {
+      imageGenStatus.textContent = "\u30BB\u30EA\u30D5\u3092\u753B\u50CF\u306B\u5408\u6210\u4E2D...";
+      await buildCompositedImages();
+    }
+    imageGenStatus.textContent = `${successCount}/${panels.length}\u679A\u306E\u753B\u50CF\u751F\u6210\u30FB\u5408\u6210\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F\u3002`;
     generateImagesButton.disabled = false;
     generateImagesButton.textContent = "4\u30B3\u30DE\u753B\u50CF\u3092\u518D\u751F\u6210\uFF08GPT Image 2\uFF09";
   });
