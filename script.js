@@ -449,21 +449,77 @@ function injectMangaImages(html) {
     const imgData = lastGeneratedMangaImages[panelNum];
     if (!imgData) return;
 
-    // .koma-num を保持し、残りの子要素を img に置き換える
+    // .koma-num を保持し、残りの子要素を差し替える
     const numEl = el.querySelector(".koma-num");
     el.innerHTML = "";
     if (numEl) el.appendChild(numEl);
 
+    // 画像を追加
     const img = doc.createElement("img");
     img.src = `data:${imgData.mediaType};base64,${imgData.base64}`;
     img.alt = `${panelNum}コマ目`;
     img.className = "koma-generated-image";
     el.appendChild(img);
+
+    // セリフ吹き出しを追加（lastMangaJson の dialogue 配列から取得）
+    const panelData = lastMangaJson && lastMangaJson.panels && lastMangaJson.panels[idx];
+    const dialogues = (panelData && Array.isArray(panelData.dialogue)) ? panelData.dialogue : [];
+    if (dialogues.length > 0) {
+      const bubblesDiv = doc.createElement("div");
+      bubblesDiv.className = "koma-bubbles";
+      dialogues.forEach((line) => {
+        const bubble = doc.createElement("div");
+        bubble.className = "speech-bubble";
+        bubble.textContent = line;
+        bubblesDiv.appendChild(bubble);
+      });
+      el.appendChild(bubblesDiv);
+    }
+
+    // 画像差し込み済みを示すクラスを付与
+    el.classList.add("koma-illust-with-image");
+
+    // 画像がある場合は .koma-serif（テキストセリフ行）を非表示にする
+    const komaBox = el.closest(".koma-box");
+    if (komaBox) {
+      const serifEl = komaBox.querySelector(".koma-serif");
+      if (serifEl) serifEl.style.display = "none";
+    }
   });
 
-  // .koma-generated-image 用スタイルを <style> タグに追記
+  // LP HTML内の <style> に必要なCSSを追記
   const styleEl = doc.querySelector("style");
-  const imageCSS = "\n.koma-generated-image { display: block; width: 100%; height: auto; }\n";
+  const imageCSS = `
+.koma-illust {
+  position: relative;
+  overflow: hidden;
+}
+.koma-generated-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.koma-bubbles {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 3;
+}
+.speech-bubble {
+  background: rgba(255,255,255,0.94);
+  color: #111;
+  border: 2px solid #111;
+  border-radius: 14px;
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  font-weight: 600;
+}
+`;
   if (styleEl) {
     styleEl.textContent += imageCSS;
   } else {
