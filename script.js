@@ -342,6 +342,7 @@ const lpStatus = document.getElementById("lpStatus");
 
 let generatedLpHtml = "";
 let lastMangaJson = null;
+let lastGeneratedMangaImages = {}; // { [panelNum]: { base64, mediaType } }
 
 function buildLpPrompt(data) {
   const char = buildCharacterDesc(data);
@@ -435,6 +436,45 @@ function buildLpPrompt(data) {
 HTMLのみ出力してください。説明文・コードブロック記号(\`\`\`)は不要です。`;
 }
 
+function injectMangaImages(html) {
+  const keys = Object.keys(lastGeneratedMangaImages);
+  if (keys.length < 4) return html;
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+
+  const illust = doc.querySelectorAll(".koma-illust");
+  illust.forEach((el, idx) => {
+    const panelNum = idx + 1;
+    const imgData = lastGeneratedMangaImages[panelNum];
+    if (!imgData) return;
+
+    // .koma-num を保持し、残りの子要素を img に置き換える
+    const numEl = el.querySelector(".koma-num");
+    el.innerHTML = "";
+    if (numEl) el.appendChild(numEl);
+
+    const img = doc.createElement("img");
+    img.src = `data:${imgData.mediaType};base64,${imgData.base64}`;
+    img.alt = `${panelNum}コマ目`;
+    img.className = "koma-generated-image";
+    el.appendChild(img);
+  });
+
+  // .koma-generated-image 用スタイルを <style> タグに追記
+  const styleEl = doc.querySelector("style");
+  const imageCSS = "\n.koma-generated-image { display: block; width: 100%; height: auto; }\n";
+  if (styleEl) {
+    styleEl.textContent += imageCSS;
+  } else {
+    const newStyle = doc.createElement("style");
+    newStyle.textContent = imageCSS;
+    doc.head.appendChild(newStyle);
+  }
+
+  return "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
+}
+
 if (generateLpButton) {
   generateLpButton.addEventListener("click", async () => {
     const data = collectFormData();
@@ -469,8 +509,11 @@ if (generateLpButton) {
 
       if (!response.ok) throw new Error(result.error || "APIエラー");
 
-      generatedLpHtml = result.result;
-      lpStatus.textContent = "LP HTMLの生成が完了しました！ダウンロードして確認してください。";
+      generatedLpHtml = injectMangaImages(result.result);
+      const injected = Object.keys(lastGeneratedMangaImages).length >= 4;
+      lpStatus.textContent = injected
+        ? "LP HTMLの生成が完了しました！生成済み漫画画像を埋め込みました。ダウンロードして確認してください。"
+        : "LP HTMLの生成が完了しました！ダウンロードして確認してください。";
       downloadLpButton.hidden = false;
 
     } catch (error) {
@@ -703,6 +746,7 @@ if (generateMangaDataButton) {
     generateMangaDataButton.textContent = "\u751F\u6210\u4E2D...";
     mangaDataStatus.textContent = "Claude AI\u304C4\u30B3\u30DE\u6F2B\u753B\u30C7\u30FC\u30BF\u3092\u751F\u6210\u4E2D\u3067\u3059...";
     lastMangaJson = null;
+    lastGeneratedMangaImages = {};
     generateImagesButton.hidden = true;
     mangaImagesContainer.innerHTML = "";
     mangaImagesContainer.hidden = true;
@@ -782,6 +826,7 @@ if (generateImagesButton) {
     mangaImagesContainer.innerHTML = "";
     mangaImagesContainer.hidden = true;
     imageGenStatus.textContent = "";
+    lastGeneratedMangaImages = {};
 
     const commonChar = lastMangaJson.common_character_prompt || "";
     const panels = lastMangaJson.panels;
@@ -796,6 +841,7 @@ if (generateImagesButton) {
         const prompt = buildImagePrompt(panel, commonChar);
         const result = await generateSingleImage(prompt, panelNum);
         renderImageCard(panelNum, result.imageBase64, result.mediaType || "image/png");
+        lastGeneratedMangaImages[panelNum] = { base64: result.imageBase64, mediaType: result.mediaType || "image/png" };
         successCount++;
       } catch (error) {
         const errCard = document.createElement("div");
