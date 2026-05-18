@@ -341,6 +341,7 @@ const downloadLpButton = document.getElementById("downloadLpButton");
 const lpStatus = document.getElementById("lpStatus");
 
 let generatedLpHtml = "";
+let lastMangaJson = null;
 
 function buildLpPrompt(data) {
   const char = buildCharacterDesc(data);
@@ -496,8 +497,11 @@ if (downloadLpButton) {
 
 // \u2500\u2500 4\u30B3\u30DE\u6F2B\u753B\u30C7\u30FC\u30BF\u81EA\u52D5\u751F\u6210 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const generateMangaDataButton = document.getElementById("generateMangaDataButton");
-const mangaDataStatus = document.getElementById("mangaDataStatus");
-const mangaCardsContainer = document.getElementById("mangaCardsContainer");
+const mangaDataStatus         = document.getElementById("mangaDataStatus");
+const mangaCardsContainer     = document.getElementById("mangaCardsContainer");
+const generateImagesButton    = document.getElementById("generateImagesButton");
+const imageGenStatus          = document.getElementById("imageGenStatus");
+const mangaImagesContainer    = document.getElementById("mangaImagesContainer");
 
 function buildMangaJsonPrompt(data) {
   const char = buildCharacterDesc(data);
@@ -614,6 +618,8 @@ function renderMangaCards(text) {
   }
 
   // \u5171\u901A\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u30D7\u30ED\u30F3\u30D7\u30C8
+  lastMangaJson = parsed;
+
   const commonCharHtml = parsed.common_character_prompt
     ? `<div class="manga-common-char">
         <div class="manga-common-char-head">
@@ -696,6 +702,11 @@ if (generateMangaDataButton) {
     generateMangaDataButton.disabled = true;
     generateMangaDataButton.textContent = "\u751F\u6210\u4E2D...";
     mangaDataStatus.textContent = "Claude AI\u304C4\u30B3\u30DE\u6F2B\u753B\u30C7\u30FC\u30BF\u3092\u751F\u6210\u4E2D\u3067\u3059...";
+    lastMangaJson = null;
+    generateImagesButton.hidden = true;
+    mangaImagesContainer.innerHTML = "";
+    mangaImagesContainer.hidden = true;
+    imageGenStatus.textContent = "";
     mangaCardsContainer.hidden = true;
 
     try {
@@ -719,6 +730,7 @@ if (generateMangaDataButton) {
 
       mangaDataStatus.textContent = "4\u30B3\u30DE\u6F2B\u753B\u30C7\u30FC\u30BF\u306E\u751F\u6210\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F\uFF01";
       renderMangaCards(result.result);
+      generateImagesButton.hidden = false;
 
     } catch (error) {
       mangaDataStatus.textContent = `\u30A8\u30E9\u30FC: ${error.message}`;
@@ -726,6 +738,80 @@ if (generateMangaDataButton) {
       generateMangaDataButton.disabled = false;
       generateMangaDataButton.textContent = "4\u30B3\u30DE\u30C7\u30FC\u30BF\u3092\u751F\u6210";
     }
+  });
+}
+
+// \u2500\u2500 4\u30B3\u30DE\u753B\u50CF\u751F\u6210\uFF08GPT Image 2\uFF09 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+function buildImagePrompt(panel, commonChar) {
+  const charPart  = commonChar ? commonChar + ". " : "";
+  const avoidPart = panel.negative_prompt ? " Avoid: " + panel.negative_prompt + "." : "";
+  return charPart + (panel.image_prompt || "") + avoidPart;
+}
+
+async function generateSingleImage(prompt, panelIndex) {
+  const response = await fetch("/api/generate-image", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, panelIndex }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "\u753B\u50CFAPI\u30A8\u30E9\u30FC");
+  return data;
+}
+
+function renderImageCard(panelIndex, imageBase64, mediaType) {
+  const card = document.createElement("div");
+  card.className = "manga-image-item";
+  card.innerHTML = `
+    <div class="manga-image-label">${panelIndex}\u30B3\u30DE\u76EE</div>
+    <img src="data:${mediaType};base64,${imageBase64}" alt="${panelIndex}\u30B3\u30DE\u76EE\u306E\u6F2B\u753B\u30A4\u30E9\u30B9\u30C8" />
+  `;
+  mangaImagesContainer.appendChild(card);
+  mangaImagesContainer.hidden = false;
+}
+
+if (generateImagesButton) {
+  generateImagesButton.addEventListener("click", async () => {
+    if (!lastMangaJson || !lastMangaJson.panels) {
+      imageGenStatus.textContent = "\u5148\u306B\u300C4\u30B3\u30DE\u30C7\u30FC\u30BF\u3092\u751F\u6210\u300D\u3092\u5B9F\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002";
+      return;
+    }
+
+    generateImagesButton.disabled = true;
+    generateImagesButton.textContent = "\u751F\u6210\u4E2D...";
+    mangaImagesContainer.innerHTML = "";
+    mangaImagesContainer.hidden = true;
+    imageGenStatus.textContent = "";
+
+    const commonChar = lastMangaJson.common_character_prompt || "";
+    const panels = lastMangaJson.panels;
+    let successCount = 0;
+
+    for (let i = 0; i < panels.length; i++) {
+      const panel = panels[i];
+      const panelNum = panel.panel ?? panel.panelNumber ?? (i + 1);
+      imageGenStatus.textContent = `${panelNum}\u30B3\u30DE\u76EE\u3092\u751F\u6210\u4E2D... (${i + 1}/${panels.length})`;
+
+      try {
+        const prompt = buildImagePrompt(panel, commonChar);
+        const result = await generateSingleImage(prompt, panelNum);
+        renderImageCard(panelNum, result.imageBase64, result.mediaType || "image/png");
+        successCount++;
+      } catch (error) {
+        const errCard = document.createElement("div");
+        errCard.className = "manga-image-item manga-image-error";
+        errCard.innerHTML = `
+          <div class="manga-image-label">${panelNum}\u30B3\u30DE\u76EE</div>
+          <p>${panelNum}\u30B3\u30DE\u76EE\u306E\u751F\u6210\u306B\u5931\u6557\u3057\u307E\u3057\u305F: ${error.message}</p>
+        `;
+        mangaImagesContainer.appendChild(errCard);
+        mangaImagesContainer.hidden = false;
+      }
+    }
+
+    imageGenStatus.textContent = `${successCount}/${panels.length}\u679A\u306E\u753B\u50CF\u751F\u6210\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F\u3002`;
+    generateImagesButton.disabled = false;
+    generateImagesButton.textContent = "4\u30B3\u30DE\u753B\u50CF\u3092\u518D\u751F\u6210\uFF08GPT Image 2\uFF09";
   });
 }
 

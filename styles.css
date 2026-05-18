@@ -410,3 +410,43 @@ h3 {
   word-break: break-all;
   line-height: 1.6;
 }
+
+/* 4コマ画像生成エリア */
+#mangaImagesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.manga-image-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.manga-image-label {
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 6px 12px;
+}
+
+.manga-image-item img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.manga-image-error {
+  border-color: #e57373;
+}
+
+.manga-image-error p {
+  color: #c62828;
+  font-size: 0.85rem;
+  padding: 10px 12px;
+  margin: 0;
+}
