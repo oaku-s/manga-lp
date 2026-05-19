@@ -579,8 +579,8 @@ async function buildCompositedImages() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function injectMangaImages(html) {
-  // 合成済み画像が4枚揃っている場合のみ差し込む
-  const keys = Object.keys(lastCompositedMangaImages);
+  // 生成済み画像が4枚揃っている場合のみ差し込む
+  const keys = Object.keys(lastGeneratedMangaImages);
   if (keys.length < 4) return html;
 
   const parser = new DOMParser();
@@ -589,24 +589,24 @@ function injectMangaImages(html) {
   const illust = doc.querySelectorAll(".koma-illust");
   illust.forEach((el, idx) => {
     const panelNum = idx + 1;
-    const dataUrl  = lastCompositedMangaImages[panelNum];
-    if (!dataUrl) return;
+    const imgData  = lastGeneratedMangaImages[panelNum];
+    if (!imgData) return;
 
     // .koma-num を保持し、残りの子要素を差し替える
     const numEl = el.querySelector(".koma-num");
     el.innerHTML = "";
     if (numEl) el.appendChild(numEl);
 
-    // 合成済み画像（吹き出し焼き込み済み）を追加
+    // 生成画像（セリフ込みで生成済み）を追加
     const img = doc.createElement("img");
-    img.src       = dataUrl;
+    img.src       = `data:${imgData.mediaType};base64,${imgData.base64}`;
     img.alt       = `${panelNum}コマ目`;
     img.className = "koma-generated-image";
     el.appendChild(img);
 
     el.classList.add("koma-illust-with-image");
 
-    // .koma-serif（テキストセリフ行）を非表示にする（セリフは画像に焼き込み済み）
+    // .koma-serif（テキストセリフ行）を非表示にする（セリフは画像に含まれている）
     const komaBox = el.closest(".koma-box");
     if (komaBox) {
       const serifEl = komaBox.querySelector(".koma-serif");
@@ -666,7 +666,7 @@ if (generateLpButton) {
       if (!response.ok) throw new Error(result.error || "APIエラー");
 
       generatedLpHtml = injectMangaImages(result.result);
-      const injected = Object.keys(lastCompositedMangaImages).length >= 4;
+      const injected = Object.keys(lastGeneratedMangaImages).length >= 4;
       lpStatus.textContent = injected
         ? "LP HTMLの生成が完了しました！生成済み漫画画像を埋め込みました。ダウンロードして確認してください。"
         : "LP HTMLの生成が完了しました！ダウンロードして確認してください。";
@@ -944,9 +944,37 @@ if (generateMangaDataButton) {
 
 // \u2500\u2500 4\u30B3\u30DE\u753B\u50CF\u751F\u6210\uFF08GPT Image 2\uFF09 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function buildImagePrompt(panel, commonChar) {
-  const charPart  = commonChar ? commonChar + ". " : "";
-  const avoidPart = panel.negative_prompt ? " Avoid: " + panel.negative_prompt + "." : "";
-  return charPart + (panel.image_prompt || "") + avoidPart;
+  const charPart = commonChar ? commonChar + ". " : "";
+
+  // image_prompt から "no text / no speech bubbles / no captions / no dialogue" を除去する
+  const imgPrompt = (panel.image_prompt || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => !/^no\s+(text|speech\s+bubbles?|captions?|dialogue)$/i.test(s))
+    .join(", ");
+
+  // negative_prompt から "text / speech bubbles / captions" を除去する
+  const negPrompt = (panel.negative_prompt || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => !["text", "speech bubbles", "speech bubble", "captions", "caption"].includes(s.toLowerCase()))
+    .join(", ")
+    .trim();
+
+  // 各コマの dialogue をプロンプトに含める
+  const dialogues = Array.isArray(panel.dialogue) ? panel.dialogue : [];
+  let bubblePart = "";
+  if (dialogues.length > 0) {
+    const lines = dialogues.map((d) => `「${d}」`).join(" ");
+    bubblePart =
+      " This manga panel must include Japanese speech bubbles with clear readable Japanese text." +
+      " Place speech bubbles in natural empty areas of the panel." +
+      " Do not cover faces, hands, or the main expression—keep the character's face clearly visible." +
+      " Put the following exact Japanese dialogue inside the speech bubbles: " + lines + ".";
+  }
+
+  const avoidPart = negPrompt ? " Avoid: " + negPrompt + "." : "";
+  return charPart + imgPrompt + bubblePart + avoidPart;
 }
 
 async function generateSingleImage(prompt, panelIndex) {
@@ -1013,11 +1041,7 @@ if (generateImagesButton) {
       }
     }
 
-    if (successCount > 0) {
-      imageGenStatus.textContent = "\u30BB\u30EA\u30D5\u3092\u753B\u50CF\u306B\u5408\u6210\u4E2D...";
-      await buildCompositedImages();
-    }
-    imageGenStatus.textContent = `${successCount}/${panels.length}\u679A\u306E\u753B\u50CF\u751F\u6210\u30FB\u5408\u6210\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F\u3002`;
+    imageGenStatus.textContent = `${successCount}/${panels.length}\u679A\u306E\u753B\u50CF\u751F\u6210\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F\u3002`;
     generateImagesButton.disabled = false;
     generateImagesButton.textContent = "4\u30B3\u30DE\u753B\u50CF\u3092\u518D\u751F\u6210\uFF08GPT Image 2\uFF09";
   });
