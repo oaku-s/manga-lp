@@ -344,6 +344,7 @@ let generatedLpHtml = "";
 let lastMangaJson = null;
 let lastGeneratedMangaImages = {}; // { [panelNum]: { base64, mediaType } }
 let lastCompositedMangaImages = {}; // { [panelNum]: dataURL（吹き出し合成済み） }
+let lastGeneratedProfileImage = null; // { base64, mediaType } ヒーロー・キャラ紹介用
 
 function buildLpPrompt(data) {
   const char = buildCharacterDesc(data);
@@ -614,11 +615,33 @@ function injectMangaImages(html) {
     }
   });
 
-  // LP HTML内の <style> に最小限のCSSを追記
+  // 人物紹介画像を .hero-illust / .chara-avatar / .chara-icon に差し込む
+  if (lastGeneratedProfileImage) {
+    const profileSrc = `data:${lastGeneratedProfileImage.mediaType};base64,${lastGeneratedProfileImage.base64}`;
+    [".hero-illust", ".chara-avatar", ".chara-icon"].forEach((selector) => {
+      doc.querySelectorAll(selector).forEach((el) => {
+        el.innerHTML = "";
+        const img = doc.createElement("img");
+        img.src       = profileSrc;
+        img.alt       = "キャラクター";
+        img.className = "lp-profile-image";
+        el.appendChild(img);
+      });
+    });
+  }
+
+  // LP HTML内の <style> に必要なCSSを追記
   const styleEl = doc.querySelector("style");
   const imageCSS = `
 .koma-illust { overflow: hidden; }
 .koma-generated-image { display: block; width: 100%; height: auto; }
+.lp-profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
 `;
   if (styleEl) {
     styleEl.textContent += imageCSS;
@@ -904,6 +927,7 @@ if (generateMangaDataButton) {
     lastMangaJson = null;
     lastGeneratedMangaImages = {};
     lastCompositedMangaImages = {};
+    lastGeneratedProfileImage = null;
     generateImagesButton.hidden = true;
     mangaImagesContainer.innerHTML = "";
     mangaImagesContainer.hidden = true;
@@ -977,6 +1001,19 @@ function buildImagePrompt(panel, commonChar) {
   return charPart + imgPrompt + bubblePart + avoidPart;
 }
 
+function buildProfileImagePrompt(commonChar) {
+  const charPart = commonChar ? commonChar + ". " : "";
+  return (
+    charPart +
+    "Clean manga-style character portrait, upper body, clear face, friendly expression. " +
+    "Simple clean white or light background. " +
+    "Same character design as the manga panels. " +
+    "Suitable for hero and profile section of a landing page. " +
+    "Manga illustration style, portrait orientation. " +
+    "Avoid: realistic photo, 3D render, text, speech bubbles, complex background, watermark, blurry, multiple characters."
+  );
+}
+
 async function generateSingleImage(prompt, panelIndex) {
   const response = await fetch("/api/generate-image", {
     method: "POST",
@@ -1013,6 +1050,7 @@ if (generateImagesButton) {
     imageGenStatus.textContent = "";
     lastGeneratedMangaImages = {};
     lastCompositedMangaImages = {};
+    lastGeneratedProfileImage = null;
 
     const commonChar = lastMangaJson.common_character_prompt || "";
     const panels = lastMangaJson.panels;
@@ -1038,6 +1076,21 @@ if (generateImagesButton) {
         `;
         mangaImagesContainer.appendChild(errCard);
         mangaImagesContainer.hidden = false;
+      }
+    }
+
+    // \u4EBA\u7269\u7D39\u4ECB\u753B\u50CF\u30921\u679A\u751F\u6210\uFF08\u30D2\u30FC\u30ED\u30FC\u30FB\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u7D39\u4ECB\u30BB\u30AF\u30B7\u30E7\u30F3\u7528\uFF09
+    if (commonChar) {
+      imageGenStatus.textContent = "\u4EBA\u7269\u7D39\u4ECB\u753B\u50CF\u3092\u751F\u6210\u4E2D...";
+      try {
+        const profilePrompt = buildProfileImagePrompt(commonChar);
+        const profileResult = await generateSingleImage(profilePrompt, "profile");
+        lastGeneratedProfileImage = {
+          base64: profileResult.imageBase64,
+          mediaType: profileResult.mediaType || "image/png",
+        };
+      } catch (_err) {
+        // \u4EBA\u7269\u753B\u50CF\u306E\u751F\u6210\u5931\u6557\u306F\u7121\u8996\uFF084\u30B3\u30DE\u753B\u50CF\u306B\u306F\u5F71\u97FF\u3057\u306A\u3044\uFF09
       }
     }
 
