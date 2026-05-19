@@ -615,10 +615,20 @@ function injectMangaImages(html) {
     }
   });
 
-  // 人物紹介画像を .hero-illust / .chara-avatar / .chara-icon に差し込む
+  // 人物紹介画像の差し込み
   if (lastGeneratedProfileImage) {
     const profileSrc = `data:${lastGeneratedProfileImage.mediaType};base64,${lastGeneratedProfileImage.base64}`;
-    [".hero-illust", ".chara-avatar", ".chara-icon"].forEach((selector) => {
+
+    // 既存セレクターへの差し込み（中身を丸ごと img に置換）
+    const profileSelectors = [
+      ".hero-illust",
+      ".chara-avatar",
+      ".chara-icon",
+      ".chara-img-wrap",
+      ".chara-icon-bg",
+      ".chara-body",
+    ];
+    profileSelectors.forEach((selector) => {
       doc.querySelectorAll(selector).forEach((el) => {
         el.innerHTML = "";
         const img = doc.createElement("img");
@@ -628,6 +638,30 @@ function injectMangaImages(html) {
         el.appendChild(img);
       });
     });
+
+    // .hero-illust が1つも存在しない場合は .hero 内に新規作成して挿入
+    if (doc.querySelectorAll(".hero-illust").length === 0) {
+      const heroSection = doc.querySelector(".hero");
+      if (heroSection) {
+        const heroIllust = doc.createElement("div");
+        heroIllust.className = "hero-illust lp-profile-hero";
+        const img = doc.createElement("img");
+        img.src       = profileSrc;
+        img.alt       = "キャラクター";
+        img.className = "lp-profile-image";
+        heroIllust.appendChild(img);
+
+        // .hero-badge の直後に挿入、なければ先頭に追加
+        const badge = heroSection.querySelector(".hero-badge");
+        if (badge && badge.nextSibling) {
+          heroSection.insertBefore(heroIllust, badge.nextSibling);
+        } else if (badge) {
+          badge.insertAdjacentElement("afterend", heroIllust);
+        } else {
+          heroSection.prepend(heroIllust);
+        }
+      }
+    }
   }
 
   // LP HTML内の <style> に必要なCSSを追記
@@ -641,6 +675,15 @@ function injectMangaImages(html) {
   object-fit: cover;
   object-position: center;
   display: block;
+}
+.lp-profile-hero {
+  width: 180px;
+  height: 220px;
+  margin: 0 auto 20px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 3px solid rgba(126,232,200,0.8);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 }
 `;
   if (styleEl) {
