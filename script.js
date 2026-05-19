@@ -579,7 +579,29 @@ async function buildCompositedImages() {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-function injectMangaImages(html) {
+// Canvas でリサイズ＋JPEG圧縮して dataURL を返す
+async function resizeImageToJpeg(base64, mediaType, maxWidth, quality) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width;
+      let h = img.height;
+      if (w > maxWidth) {
+        h = Math.round(h * maxWidth / w);
+        w = maxWidth;
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width  = w;
+      canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => resolve(`data:${mediaType};base64,${base64}`);
+    img.src = `data:${mediaType};base64,${base64}`;
+  });
+}
+
+async function injectMangaImages(html) {
   // 生成済み画像が4枚揃っている場合のみ差し込む
   const keys = Object.keys(lastGeneratedMangaImages);
   if (keys.length < 4) return html;
@@ -587,20 +609,23 @@ function injectMangaImages(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
 
-  const illust = doc.querySelectorAll(".koma-illust");
-  illust.forEach((el, idx) => {
+  // 4コマ画像：最大幅900px・JPEG quality 0.88 に圧縮してから差し込む
+  const illustEls = Array.from(doc.querySelectorAll(".koma-illust"));
+  for (let idx = 0; idx < illustEls.length; idx++) {
+    const el      = illustEls[idx];
     const panelNum = idx + 1;
     const imgData  = lastGeneratedMangaImages[panelNum];
-    if (!imgData) return;
+    if (!imgData) continue;
 
     // .koma-num を保持し、残りの子要素を差し替える
     const numEl = el.querySelector(".koma-num");
     el.innerHTML = "";
     if (numEl) el.appendChild(numEl);
 
-    // 生成画像（セリフ込みで生成済み）を追加
+    // リサイズ＋圧縮
+    const compressed = await resizeImageToJpeg(imgData.base64, imgData.mediaType, 900, 0.88);
     const img = doc.createElement("img");
-    img.src       = `data:${imgData.mediaType};base64,${imgData.base64}`;
+    img.src       = compressed;
     img.alt       = `${panelNum}コマ目`;
     img.className = "koma-generated-image";
     el.appendChild(img);
@@ -613,11 +638,15 @@ function injectMangaImages(html) {
       const serifEl = komaBox.querySelector(".koma-serif");
       if (serifEl) serifEl.style.display = "none";
     }
-  });
+  }
 
-  // 人物紹介画像の差し込み
+  // 人物紹介画像：最大幅600px・JPEG quality 0.88 に圧縮してから差し込む
   if (lastGeneratedProfileImage) {
-    const profileSrc = `data:${lastGeneratedProfileImage.mediaType};base64,${lastGeneratedProfileImage.base64}`;
+    const profileSrc = await resizeImageToJpeg(
+      lastGeneratedProfileImage.base64,
+      lastGeneratedProfileImage.mediaType,
+      600, 0.88
+    );
 
     // 既存セレクターへの差し込み（中身を丸ごと img に置換）
     const profileSelectors = [
@@ -731,7 +760,7 @@ if (generateLpButton) {
 
       if (!response.ok) throw new Error(result.error || "APIエラー");
 
-      generatedLpHtml = injectMangaImages(result.result);
+      generatedLpHtml = await injectMangaImages(result.result);
       const injected = Object.keys(lastGeneratedMangaImages).length >= 4;
       lpStatus.textContent = injected
         ? "LP HTMLの生成が完了しました！生成済み漫画画像を埋め込みました。ダウンロードして確認してください。"
