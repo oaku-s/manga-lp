@@ -669,26 +669,21 @@ async function injectMangaImages(html) {
     });
 
     // .hero-illust が1つも存在しない場合は .hero 内に新規作成して挿入
-    if (doc.querySelectorAll(".hero-illust").length === 0) {
-      const heroSection = doc.querySelector(".hero");
-      if (heroSection) {
-        const heroIllust = doc.createElement("div");
-        heroIllust.className = "hero-illust lp-profile-hero";
-        const img = doc.createElement("img");
-        img.src       = profileSrc;
-        img.alt       = "キャラクター";
-        img.className = "lp-profile-image";
-        heroIllust.appendChild(img);
+    const hero = doc.querySelector(".hero");
+    const heroBadge = hero ? hero.querySelector(".hero-badge") : null;
+    if (hero && !hero.querySelector(".hero-illust")) {
+      const heroBox = doc.createElement("div");
+      heroBox.className = "hero-illust lp-profile-hero";
+      const img = doc.createElement("img");
+      img.src       = profileSrc;
+      img.alt       = "プロフィール画像";
+      img.className = "lp-profile-image";
+      heroBox.appendChild(img);
 
-        // .hero-badge の直後に挿入、なければ先頭に追加
-        const badge = heroSection.querySelector(".hero-badge");
-        if (badge && badge.nextSibling) {
-          heroSection.insertBefore(heroIllust, badge.nextSibling);
-        } else if (badge) {
-          badge.insertAdjacentElement("afterend", heroIllust);
-        } else {
-          heroSection.prepend(heroIllust);
-        }
+      if (heroBadge) {
+        heroBadge.insertAdjacentElement("afterend", heroBox);
+      } else {
+        hero.prepend(heroBox);
       }
     }
   }
