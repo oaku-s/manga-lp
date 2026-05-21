@@ -42,6 +42,7 @@ function collectFormData() {
     characterAppearance: getValue("characterAppearance"),
     tone: getValue("tone"),
     colorImage: getValue("colorImage"),
+    refLpUrl: getValue("refLpUrl"),
   };
 }
 
@@ -732,13 +733,17 @@ if (generateLpButton) {
 
     generateLpButton.disabled = true;
     generateLpButton.textContent = "生成中...";
-    lpStatus.textContent = "Claude AIがLP HTMLを生成中です。少し待ってください...";
+    lpStatus.textContent = data.refLpUrl
+      ? "参考LPを分析してLP HTMLを生成中です（Gemini AI）..."
+      : "Claude AIがLP HTMLを生成中です。少し待ってください...";
     downloadLpButton.hidden = true;
 
     try {
       const imageData = await getImageData();
       const prompt = buildLpPrompt(data);
       const body = { prompt, mode: "lp" };
+
+      if (data.refLpUrl) body.refLpUrl = data.refLpUrl;
 
       if (imageData) {
         body.imageBase64 = imageData.base64;
