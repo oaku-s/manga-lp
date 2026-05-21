@@ -152,6 +152,51 @@
           <p id="imageGenStatus" class="status-text"></p>
           <div id="mangaImagesContainer" hidden></div>
         </article>
+
+        <article class="output-block">
+          <div class="output-head">
+            <h3>7. 手動画像アップロード（API不要）</h3>
+          </div>
+          <p class="help-text">OpenAI APIが使えない場合、外部で作成した画像をアップロードするとLP HTMLに反映できます。アップロード後にそのまま「LP HTMLを生成」へ進めます。</p>
+          <div class="upload-grid">
+            <div class="upload-item">
+              <label>
+                <span>人物紹介画像</span>
+                <input type="file" id="uploadProfile" accept="image/*" />
+              </label>
+              <div id="previewProfile" class="upload-preview" hidden></div>
+            </div>
+            <div class="upload-item">
+              <label>
+                <span>1コマ目</span>
+                <input type="file" id="uploadPanel1" accept="image/*" />
+              </label>
+              <div id="previewPanel1" class="upload-preview" hidden></div>
+            </div>
+            <div class="upload-item">
+              <label>
+                <span>2コマ目</span>
+                <input type="file" id="uploadPanel2" accept="image/*" />
+              </label>
+              <div id="previewPanel2" class="upload-preview" hidden></div>
+            </div>
+            <div class="upload-item">
+              <label>
+                <span>3コマ目</span>
+                <input type="file" id="uploadPanel3" accept="image/*" />
+              </label>
+              <div id="previewPanel3" class="upload-preview" hidden></div>
+            </div>
+            <div class="upload-item">
+              <label>
+                <span>4コマ目</span>
+                <input type="file" id="uploadPanel4" accept="image/*" />
+              </label>
+              <div id="previewPanel4" class="upload-preview" hidden></div>
+            </div>
+          </div>
+          <p id="uploadStatus" class="upload-status"></p>
+        </article>
       </section>
     </main>
 

@@ -1167,3 +1167,54 @@ if (generateImagesButton) {
   });
 }
 
+// \u2500\u2500 \u624B\u52D5\u753B\u50CF\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+function updateUploadStatus() {
+  const statusEl = document.getElementById("uploadStatus");
+  if (!statusEl) return;
+  const panelCount = Object.keys(lastGeneratedMangaImages).length;
+  const hasProfile  = !!lastGeneratedProfileImage;
+  const parts = [];
+  if (panelCount > 0) parts.push(`4\u30B3\u30DE\u753B\u50CF: ${panelCount}/4\u679A`);
+  if (hasProfile)     parts.push("\u4EBA\u7269\u7D39\u4ECB\u753B\u50CF: \u8A2D\u5B9A\u6E08\u307F");
+  statusEl.textContent = parts.length ? parts.join("\u3000\uFF0F\u3000") : "";
+}
+
+function setupUploadListener(inputId, previewId, onLoad) {
+  const input   = document.getElementById(inputId);
+  const preview = document.getElementById(previewId);
+  if (!input) return;
+
+  input.addEventListener("change", () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl   = reader.result;
+      const base64    = dataUrl.split(",")[1];
+      const mediaType = file.type || "image/png";
+      onLoad({ base64, mediaType });
+
+      if (preview) {
+        preview.innerHTML = `<img src="${dataUrl}" alt="\u30D7\u30EC\u30D3\u30E5\u30FC" />`;
+        preview.hidden = false;
+      }
+      updateUploadStatus();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// \u4EBA\u7269\u7D39\u4ECB\u753B\u50CF
+setupUploadListener("uploadProfile", "previewProfile", (data) => {
+  lastGeneratedProfileImage = data;
+});
+
+// 4\u30B3\u30DE\u753B\u50CF
+[1, 2, 3, 4].forEach((num) => {
+  setupUploadListener(`uploadPanel${num}`, `previewPanel${num}`, (data) => {
+    lastGeneratedMangaImages[num] = data;
+  });
+});
+
