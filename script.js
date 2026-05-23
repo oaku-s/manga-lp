@@ -346,6 +346,7 @@ let lastMangaJson = null;
 let lastGeneratedMangaImages = {}; // { [panelNum]: { base64, mediaType } }
 let lastCompositedMangaImages = {}; // { [panelNum]: dataURL（吹き出し合成済み） }
 let lastGeneratedProfileImage = null; // { base64, mediaType } ヒーロー・キャラ紹介用
+let isManualImageUploadMode = false;  // 手動アップロード画像使用中フラグ
 
 function buildLpPrompt(data) {
   const char = buildCharacterDesc(data);
@@ -633,11 +634,14 @@ async function injectMangaImages(html) {
 
     el.classList.add("koma-illust-with-image");
 
-    // .koma-serif（テキストセリフ行）を非表示にする（セリフは画像に含まれている）
-    const komaBox = el.closest(".koma-box");
-    if (komaBox) {
-      const serifEl = komaBox.querySelector(".koma-serif");
-      if (serifEl) serifEl.style.display = "none";
+    // 手動アップロード画像の場合はセリフ欄を残す（画像にセリフが含まれていないため）
+    // API生成画像の場合は従来通り非表示（セリフは画像に焼き込み済み）
+    if (!isManualImageUploadMode) {
+      const komaBox = el.closest(".koma-box");
+      if (komaBox) {
+        const serifEl = komaBox.querySelector(".koma-serif");
+        if (serifEl) serifEl.style.display = "none";
+      }
     }
   }
 
@@ -1123,6 +1127,7 @@ if (generateImagesButton) {
     lastGeneratedMangaImages = {};
     lastCompositedMangaImages = {};
     lastGeneratedProfileImage = null;
+    isManualImageUploadMode = false;
 
     const commonChar = lastMangaJson.common_character_prompt || "";
     const panels = lastMangaJson.panels;
@@ -1200,6 +1205,7 @@ function setupUploadListener(inputId, previewId, onLoad) {
       const base64    = dataUrl.split(",")[1];
       const mediaType = file.type || "image/png";
       onLoad({ base64, mediaType });
+      isManualImageUploadMode = true;
 
       if (preview) {
         preview.innerHTML = `<img src="${dataUrl}" alt="\u30D7\u30EC\u30D3\u30E5\u30FC" />`;
