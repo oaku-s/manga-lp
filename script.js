@@ -634,13 +634,29 @@ async function injectMangaImages(html) {
 
     el.classList.add("koma-illust-with-image");
 
-    // 手動アップロード画像の場合はセリフ欄を残す（画像にセリフが含まれていないため）
-    // API生成画像の場合は従来通り非表示（セリフは画像に焼き込み済み）
-    if (!isManualImageUploadMode) {
-      const komaBox = el.closest(".koma-box");
-      if (komaBox) {
-        const serifEl = komaBox.querySelector(".koma-serif");
-        if (serifEl) serifEl.style.display = "none";
+    // .koma-serif は両モード共通で非表示（手動時は吹き出しHTML、API時は焼き込み済み画像で表示）
+    const komaBox = el.closest(".koma-box");
+    if (komaBox) {
+      const serifEl = komaBox.querySelector(".koma-serif");
+      if (serifEl) serifEl.style.display = "none";
+    }
+
+    // 手動アップロードモードでは吹き出しHTMLを画像上に重ねる
+    if (isManualImageUploadMode) {
+      const panelData = lastMangaJson && lastMangaJson.panels && lastMangaJson.panels[idx];
+      const dialogues = (panelData && Array.isArray(panelData.dialogue)) ? panelData.dialogue : [];
+      if (dialogues.length > 0) {
+        // コマ番号ごとの位置クラスを付ける
+        const posClass = `koma-bubble-pos-${panelNum}`;
+        const bubblesDiv = doc.createElement("div");
+        bubblesDiv.className = `koma-bubbles-overlay ${posClass}`;
+        dialogues.forEach((line) => {
+          const bubble = doc.createElement("div");
+          bubble.className = "koma-speech-bubble";
+          bubble.textContent = line;
+          bubblesDiv.appendChild(bubble);
+        });
+        el.appendChild(bubblesDiv);
       }
     }
   }
@@ -696,8 +712,31 @@ async function injectMangaImages(html) {
   // LP HTML内の <style> に必要なCSSを追記
   const styleEl = doc.querySelector("style");
   const imageCSS = `
-.koma-illust { overflow: hidden; }
+.koma-illust { position: relative; overflow: hidden; }
 .koma-generated-image { display: block; width: 100%; height: auto; }
+.koma-bubbles-overlay {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 4;
+  max-width: 72%;
+}
+.koma-bubble-pos-1 { top: 12px; left: 12px; }
+.koma-bubble-pos-2 { top: 12px; right: 12px; align-items: flex-end; }
+.koma-bubble-pos-3 { bottom: 12px; left: 12px; }
+.koma-bubble-pos-4 { top: 12px; right: 12px; align-items: flex-end; }
+.koma-speech-bubble {
+  background: rgba(255,255,255,0.95);
+  color: #111;
+  border: 2px solid #111;
+  border-radius: 12px;
+  padding: 6px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.5;
+  word-break: break-all;
+}
 .lp-profile-image {
   width: 100%;
   height: 100%;
