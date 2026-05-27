@@ -1,23 +1,23 @@
-// ── Gemini API で LP を生成（参考URL付き） ────────────────────────────────────
-async function generateLpWithGemini(lpPrompt, refLpUrl, geminiKey) {
-  const fullPrompt =
-    `あなたはプロのWebデザイナーです。以下の2ステップでLP HTMLを生成してください。\n\n` +
-    `【ステップ1：参考LP分析】\n` +
-    `以下のURLのランディングページを取得・分析し、次の観点を把握してください：\n` +
+// ── Gemini API で参考LPを分析し、分析メモのみを返す ────────────────────────────
+async function analyzeRefLpWithGemini(refLpUrl, geminiKey) {
+  const analysisPrompt =
+    `以下のURLのランディングページを取得・分析し、漫画LPの設計に応用できる観点で分析メモを作成してください。\n` +
     `参考LP URL: ${refLpUrl}\n\n` +
-    `分析観点：\n` +
-    `- セクションの構成と順序（ユーザーの誘導導線）\n` +
-    `- 配色・余白・フォントの雰囲気・全体トーン\n` +
-    `- CTAの位置・文言・デザインの傾向\n` +
-    `- ヒーローセクションのレイアウトとビジュアルの扱い方\n` +
-    `- キャラクター・人物の見せ方\n\n` +
-    `重要な制約：\n` +
-    `- 参考LPの文章・画像・コードを一切コピーしないこと\n` +
-    `- 構成・雰囲気・導線設計だけを参考にすること\n` +
-    `- ターゲット・業種・コンセプトは以下のヒアリング情報を優先すること\n\n` +
-    `【ステップ2：LP HTML生成】\n` +
-    `参考LPの構成・雰囲気を取り入れながら、以下のヒアリング情報に合わせたLP HTMLを生成してください。\n\n` +
-    lpPrompt;
+    `分析する観点：\n` +
+    `1. セクション構成と順序（ファーストビュー〜CTAまでの導線）\n` +
+    `2. ファーストビューの見せ方（キャッチコピーの位置、ビジュアルの使い方）\n` +
+    `3. 配色・余白・フォントの雰囲気・全体トーン\n` +
+    `4. CTAの位置・文言・デザインの傾向\n` +
+    `5. 信頼感・安心感を出している要素（実績、顔写真、口コミなど）\n` +
+    `6. 漫画LPに応用できる演出（視覚的なリズム、コマ割りとの相性など）\n\n` +
+    `出力ルール（必ず守ること）：\n` +
+    `- HTMLは生成しない\n` +
+    `- CSSは生成しない\n` +
+    `- コードブロック（\`\`\`）は使わない\n` +
+    `- 参考LPの文章・画像・コードをコピーしない\n` +
+    `- 構成・雰囲気・導線設計を抽象化した分析メモのみを出力する\n` +
+    `- 日本語で出力する\n` +
+    `- 箇条書き・見出しを使って読みやすくまとめる`;
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
@@ -26,8 +26,8 @@ async function generateLpWithGemini(lpPrompt, refLpUrl, geminiKey) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         tools: [{ url_context: {} }],
-        contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
-        generationConfig: { maxOutputTokens: 16000 },
+        contents: [{ role: "user", parts: [{ text: analysisPrompt }] }],
+        generationConfig: { maxOutputTokens: 4000 },
       }),
     }
   );
@@ -40,6 +40,23 @@ async function generateLpWithGemini(lpPrompt, refLpUrl, geminiKey) {
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
   if (!text) throw new Error("Gemini APIの応答が空です");
   return text;
+}
+
+// ── 分析メモをClaude用プロンプトに追記する ────────────────────────────────────
+function appendAnalysisToPrompt(lpPrompt, analysisNote) {
+  return (
+    lpPrompt +
+    `\n\n## 参考LP分析メモ（Gemini AIによる分析）\n` +
+    `以下の分析メモを構成・雰囲気・導線設計の参考として活用してください。\n\n` +
+    analysisNote +
+    `\n\n## 参考LPを活用する際の制約\n` +
+    `- 参考LPの文章・画像・コードをコピーしないこと\n` +
+    `- 構成・雰囲気・導線設計の参考としてのみ使うこと\n` +
+    `- 既存の漫画LP構造（.koma-illust / .koma-box）を必ず維持すること\n` +
+    `- 各コマの画像枠には必ず class="koma-illust" を使うこと\n` +
+    `- セリフは画像側に入れる前提なので、HTML側で吹き出しを重ねないこと\n` +
+    `- injectMangaImages が動く構造（.koma-illust が4つ以上）を壊さないこと`
+  );
 }
 
 // ── Claude API で生成（既存処理） ─────────────────────────────────────────────
@@ -96,19 +113,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    // LP生成 + 参考URL + Geminiキーが揃っている場合は Gemini で試みる
+    // 参考LP URLあり + Geminiキーあり + LPモード → Geminiで分析してClaudeに渡す
     const geminiKey = process.env.GEMINI_API_KEY;
     if (mode === "lp" && refLpUrl && geminiKey) {
       try {
-        const text = await generateLpWithGemini(prompt, refLpUrl, geminiKey);
-        return res.status(200).json({ result: text, engine: "gemini" });
+        const analysisNote = await analyzeRefLpWithGemini(refLpUrl, geminiKey);
+        const enrichedPrompt = appendAnalysisToPrompt(prompt, analysisNote);
+        const text = await generateWithClaude(enrichedPrompt, imageBase64, imageMediaType, mode, claudeKey);
+        return res.status(200).json({ result: text, engine: "claude-with-gemini-analysis" });
       } catch (geminiErr) {
-        // Gemini 失敗 → Claude にフォールバック
-        console.error("Gemini LP生成失敗、Claudeにフォールバック:", geminiErr.message);
+        // Gemini分析失敗 → 通常のClaude生成にフォールバック
+        console.error("Gemini分析失敗、通常Claude生成にフォールバック:", geminiErr.message);
       }
     }
 
-    // 通常の Claude 生成
+    // 通常のClaude生成（参考URLなし、またはGemini失敗時）
     const text = await generateWithClaude(prompt, imageBase64, imageMediaType, mode, claudeKey);
     return res.status(200).json({ result: text, engine: "claude" });
 
