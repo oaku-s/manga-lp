@@ -1,56 +1,137 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>飲食店 集客マンガLP</title>
+    <title>ヒアリングフォーム→漫画LP試作生成</title>
     <link rel="stylesheet" href="css/manga.css" />
   </head>
   <body>
-    <main class="lp">
-      <section class="scene scene--p1 js-fade-panel">
-        <div class="scene__visual" aria-hidden="true"></div>
-        <div class="scene__content">
-          <p class="scene__eyebrow">コマ1</p>
-          <h2 class="scene__title">売れない...</h2>
-        </div>
-      </section>
+    <main class="container">
+      <header class="header">
+        <h1>漫画LP試作生成ツール</h1>
+        <p>ヒアリング内容から、4コマ構成・画像生成プロンプト・コピー案・単体HTMLの完成LPを固定ロジックで生成します。</p>
+      </header>
 
-      <section class="scene scene--p2 js-fade-panel">
-        <div class="scene__visual" aria-hidden="true"></div>
-        <div class="scene__content">
-          <p class="scene__eyebrow">コマ2</p>
-          <h2 class="scene__title">これだ！</h2>
+      <form id="hearing-form" class="card" novalidate>
+        <div class="preset-actions" aria-label="サンプル入力">
+          <button type="button" class="preset-btn" data-preset="recruiting">採用LPサンプルを入力</button>
+          <button type="button" class="preset-btn" data-preset="leadgen">集客LPサンプルを入力</button>
         </div>
-      </section>
 
-      <section class="scene scene--p3 js-fade-panel">
-        <div class="scene__visual" aria-hidden="true"></div>
-        <div class="scene__content">
-          <p class="scene__eyebrow">コマ3</p>
-          <h2 class="scene__title">満員！</h2>
+        <div class="field">
+          <label for="lpType">LP種別</label>
+          <select id="lpType" name="lpType" required>
+            <option value="recruiting">採用向けLP</option>
+            <option value="leadgen">集客向けLP</option>
+          </select>
         </div>
-      </section>
 
-      <section class="scene scene--p4 js-fade-panel">
-        <div class="scene__visual" aria-hidden="true"></div>
-        <div class="scene__content">
-          <p class="scene__eyebrow">コマ4</p>
-          <h2 class="scene__title">大成功！</h2>
+        <div class="field">
+          <label for="business">店舗名または会社名</label>
+          <input id="business" name="business" type="text" required placeholder="例：サンプルラーメン店 まる福" />
         </div>
-      </section>
 
-      <section id="contact" class="scene scene--cta js-fade-panel">
-        <div class="scene__content">
-          <p class="scene__eyebrow">まずはお気軽に</p>
-          <h2 class="scene__title">今すぐ無料相談する</h2>
-          <a class="scene__cta" href="#">今すぐ無料相談する</a>
+        <div class="field">
+          <label for="service">サービス名または募集職種</label>
+          <input id="service" name="service" type="text" required placeholder="例：ホール・調理補助スタッフ / こだわりラーメン" />
         </div>
+
+        <div class="field">
+          <label for="target">ターゲット（年齢・性別・悩み）</label>
+          <textarea id="target" name="target" required placeholder="例：未経験の学生、初めて来店する近隣のラーメン好き"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="strength">サービス・職場の強みや特徴</label>
+          <textarea id="strength" name="strength" required placeholder="例：研修あり、シフト相談可、まかないあり"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="problem">解決できる悩み・不安</label>
+          <textarea id="problem" name="problem" required placeholder="例：人間関係、未経験、シフトの不安"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="achievement">安心材料・補足情報</label>
+          <textarea id="achievement" name="achievement" required placeholder="例：サンプルLP用の表現です。実在の実績ではありません。"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="character">キャラクターのイメージ</label>
+          <input id="character" name="character" type="text" required placeholder="例：明るい店長と新人スタッフ" />
+        </div>
+
+        <div class="field">
+          <label for="tone">トーン</label>
+          <input id="tone" name="tone" type="text" required placeholder="例：明るい・親しみやすい" />
+        </div>
+
+        <div class="field">
+          <label for="color">カラーイメージ</label>
+          <input id="color" name="color" type="text" required placeholder="例：赤と黄色を基調に活気ある印象" />
+        </div>
+
+        <div class="field field-pair">
+          <div>
+            <label for="ctaLabel">CTAボタン文言</label>
+            <input id="ctaLabel" name="ctaLabel" type="text" required placeholder="例：応募フォームへ進む / 来店・予約情報を見る" />
+          </div>
+          <div>
+            <label for="ctaUrl">CTAリンク</label>
+            <input id="ctaUrl" name="ctaUrl" type="url" required placeholder="例：https://example.com/" />
+          </div>
+        </div>
+
+        <p id="form-error" class="form-error" role="alert"></p>
+        <button class="submit-btn" type="submit">生成する</button>
+      </form>
+
+      <section id="result" class="result hidden" aria-live="polite">
+        <article class="card result-block">
+          <div class="result-header">
+            <h2>1. 4コマのストーリー構成</h2>
+            <button type="button" class="copy-btn" data-copy-target="story">コピー</button>
+          </div>
+          <pre id="story" class="output"></pre>
+        </article>
+
+        <article class="card result-block">
+          <div class="result-header">
+            <h2>2. 画像生成プロンプト（4コマ分）</h2>
+            <button type="button" class="copy-btn" data-copy-target="prompts">コピー</button>
+          </div>
+          <pre id="prompts" class="output"></pre>
+        </article>
+
+        <article class="card result-block">
+          <div class="result-header">
+            <h2>3. LPキャッチコピー案（3パターン）</h2>
+            <button type="button" class="copy-btn" data-copy-target="copies">コピー</button>
+          </div>
+          <pre id="copies" class="output"></pre>
+        </article>
+
+        <article class="card result-block">
+          <div class="result-header">
+            <h2>4. 完成LPプレビュー</h2>
+            <button id="download-html" type="button" class="copy-btn">HTMLダウンロード</button>
+          </div>
+          <div id="lp-preview" class="preview-shell"></div>
+        </article>
+
+        <article class="card result-block">
+          <div class="result-header">
+            <h2>5. 生成HTML検査</h2>
+          </div>
+          <pre id="html-check" class="output check-output"></pre>
+        </article>
       </section>
     </main>
 
-    <a class="fixed-cta" href="#contact">今すぐ無料相談する</a>
-
+    <textarea id="generated-html-source" hidden></textarea>
     <script src="js/scroll.js"></script>
   </body>
 </html>
+
+
