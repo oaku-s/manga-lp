@@ -41,6 +41,7 @@ const panelImageCache = new Map();
 
 const sampleData = {
   recruiting: {
+    isSample: true,
     lpType: "recruiting",
     business: "サンプルラーメン まる福",
     service: "ホール・調理補助スタッフ",
@@ -55,6 +56,7 @@ const sampleData = {
     ctaUrl: "https://example.com/",
   },
   leadgen: {
+    isSample: true,
     lpType: "leadgen",
     business: "サンプルラーメン まる福",
     service: "こだわりスープと自家製麺のラーメン",
@@ -73,6 +75,7 @@ const sampleData = {
 const getValue = (formData, name) => (formData.get(name) || "").toString().trim();
 
 const normalizeInput = (formData) => ({
+  isSample: true,
   lpType: getValue(formData, "lpType") || "recruiting",
   business: getValue(formData, "business"),
   service: getValue(formData, "service"),
@@ -231,39 +234,110 @@ const getInlineStyles = () => {
   return rules.join("\n");
 };
 
-const buildStory = (data) => {
-  const { lpType, business, service, target, strength, problem, achievement, tone } = data;
+const splitList = (value) =>
+  String(value || "")
+    .split(/[、,。\n・\/]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 
-  if (lpType === "recruiting") {
-    return [
-      "【1コマ目：応募前の不安】",
-      `${target}が「${problem}」に不安を感じ、応募を迷っているシーン。`,
-      "",
-      "【2コマ目：職場との出会い】",
-      `${business}の${service}募集を見つける。${strength}に安心感を持ち、「ここなら働けそう」と感じる。`,
-      "",
-      "【3コマ目：働くイメージ】",
-      `店長や先輩に教わりながら働く。安心材料として「${achievement}」を明記し、誤認されないサンプル表現にする。`,
-      "",
-      "【4コマ目：応募後の未来】",
-      `不安が消え、前向きに働く未来を描写。${tone}な雰囲気で「応募フォームへ進む」を促す。`,
-    ].join("\n");
-  }
+const firstItem = (value, fallback) => splitList(value)[0] || fallback;
 
-  return [
-    "【1コマ目：店選びの不安】",
-    `${target}が「${problem}」と迷っているシーン。`,
-    "",
-    "【2コマ目：お店との出会い】",
-    `${business}の${service}を知る。${strength}が伝わり、「ここなら良さそう」と感じる。`,
-    "",
-    "【3コマ目：商品体験】",
-    `スープや麺の魅力を体験する。補足として「${achievement}」を小さく明記し、サンプルであることを伝える。`,
-    "",
-    "【4コマ目：来店行動】",
-    `満足した表情で、${tone}な雰囲気のまま「来店・予約情報を見る」を促す。`,
-  ].join("\n");
+const cleanSentence = (value, fallback) =>
+  (String(value || "").trim().replace(/[。．.]+$/g, "") || fallback);
+
+const buildMangaPanelData = (data, imageSources = []) => {
+  const target = data.target || "読者";
+  const problem = data.problem || "迷いや不安";
+  const strength = data.strength || "魅力";
+  const achievement = data.achievement || "安心材料";
+  const service = data.service || "サービス";
+  const business = data.business || "お店";
+  const character = data.character || "案内役";
+  const ctaLabel = data.cta?.label || "詳しく見る";
+  const ctaSubject = ctaLabel.replace(/へ進む$/, "").replace(/を見る$/, "").replace(/を申し込む$/, "").replace(/を予約する$/, "").trim() || ctaLabel;
+  const placeLabel = /店|ラーメン|飲食|カフェ|レストラン|居酒屋|美容室|サロン/.test(business) ? "店" : "サービス";
+  const visitLabel = placeLabel === "店" ? "来店" : "利用";
+  const firstProblem = firstItem(problem, data.lpType === "recruiting" ? "未経験の不安" : `${placeLabel}選びの不安`);
+  const firstStrength = firstItem(strength, data.lpType === "recruiting" ? "研修あり" : "こだわり");
+  const proofSentence = cleanSentence(achievement, "安心材料を確認");
+  const ctaDialogue = ctaLabel
+    .replace(/を申し込む$/, "を申し込んでみよう")
+    .replace(/を予約する$/, "を予約してみよう")
+    .replace(/へ進む$/, "へ進んでみよう")
+    .replace(/を見る$/, "を確認してみよう");
+  const finalDialogue = ctaDialogue === ctaLabel ? `まずは${ctaSubject}を確認してみよう` : ctaDialogue;
+
+  const panels = data.lpType === "recruiting"
+    ? [
+        {
+          title: "応募前の不安",
+          narration: `${target}が「${problem}」を抱え、${business}の前で応募を迷っている。`,
+          dialogue: `「${firstProblem}、本当に大丈夫かな...」`,
+          emotion: "worry",
+        },
+        {
+          title: "募集内容を知って安心",
+          narration: `${service}の募集を知り、${strength}という働きやすさに気づく。`,
+          dialogue: `「${firstStrength}なら、最初の一歩を踏み出せそう」`,
+          emotion: "notice",
+        },
+        {
+          title: `${firstStrength}を体験`,
+          narration: `${character}や先輩に教わりながら、${firstStrength}を通じて${service}の仕事を具体的に覚えていく。`,
+          dialogue: "「教わりながらなら、少しずつ成長できそう」",
+          emotion: "hope",
+        },
+        {
+          title: "応募を決意",
+          narration: `${proofSentence}。不安が前向きな気持ちへ変わる。`,
+          dialogue: `「${finalDialogue}」`,
+          emotion: "decide",
+        },
+      ]
+    : [
+        {
+          title: `${placeLabel}選びで迷う`,
+          narration: `${target}が「${problem}」と感じ、初めて${visitLabel}する${placeLabel}を決めきれずにいる。`,
+          dialogue: `「${firstProblem}。失敗したくないな」`,
+          emotion: "worry",
+        },
+        {
+          title: "魅力を知る",
+          narration: `${business}の${service}を知り、${strength}が来店前の判断材料になる。`,
+          dialogue: `「${firstStrength}なら、期待できそう」`,
+          emotion: "notice",
+        },
+        {
+          title: `${firstStrength}を体感`,
+          narration: `${firstStrength}を通じて${service}の魅力を体験し、来店前の不安が満足感へ変わる。`,
+          dialogue: "「自分に合いそう。相談してみたい」",
+          emotion: "delight",
+        },
+        {
+          title: "来店・予約を決意",
+          narration: `${proofSentence}。次の行動として${ctaLabel}。`,
+          dialogue: `「${finalDialogue}」`,
+          emotion: "decide",
+        },
+      ];
+
+  return panels.map((panel, index) => ({
+    ...panel,
+    imagePath: imageSources[index] || "",
+  }));
 };
+
+const buildStory = (data) =>
+  buildMangaPanelData(data)
+    .map((panel, index) => [
+      `【${index + 1}コマ目：${panel.title}】`,
+      `ナレーション：${panel.narration}`,
+      `セリフ：${panel.dialogue}`,
+      `感情：${panel.emotion}`,
+    ].join("\n"))
+    .join("\n\n");
+
+
 
 const buildImagePrompts = (data) => {
   const { lpType, business, service, target, strength, problem, achievement, character, tone, color } = data;
@@ -336,138 +410,101 @@ const sectionTitle = (eyebrow, title, lead = "") => `
   </div>
 `;
 
-const mangaPanels = (panels, imageSources) => `
-  <div class="generated-panels" aria-label="4コマ漫画">
+const themeStyle = (data) => {
+  const color = String(data.color || "");
+  const isLeadgen = data.lpType === "leadgen";
+  let accent = isLeadgen ? "#14b8a6" : "#facc15";
+  let heroEnd = isLeadgen ? "#0f766e" : "#7f1d1d";
+  if (/ピンク|桃|美容|pink/i.test(color)) {
+    accent = "#f9a8d4";
+    heroEnd = "#9d174d";
+  } else if (/緑|グリーン|整体|green/i.test(color)) {
+    accent = "#86efac";
+    heroEnd = "#166534";
+  } else if (/青|ブルー|blue/i.test(color)) {
+    accent = "#93c5fd";
+    heroEnd = "#1d4ed8";
+  } else if (/黒|白|モノトーン|black|white/i.test(color)) {
+    accent = "#e5e7eb";
+    heroEnd = "#111827";
+  } else if (/赤|黄|ラーメン|red|yellow/i.test(color)) {
+    accent = "#facc15";
+    heroEnd = "#7f1d1d";
+  }
+  return `--generated-accent: ${accent}; --generated-hero-end: ${heroEnd};`;
+};
+
+const isSampleLp = (data) => data.isSample !== false;
+
+const sampleOnly = (data, html) => (isSampleLp(data) ? html : "");
+
+const sampleLinkNote = (data) => (isSampleLp(data) ? "<small>サンプル用リンクです</small>" : "");
+
+const sampleLpLabel = (data) => (isSampleLp(data) ? "サンプルLP" : "LP");
+
+const assetNotice = (data) => sampleOnly(data, `
+  <aside class="asset-notice">
+    <strong>漫画画像は仮素材です</strong>
+    <p>本番制作時はヒアリング内容に合わせて画像を差し替えます。上部に生成される画像プロンプトを制作指示として使用できます。</p>
+  </aside>
+`);
+
+const mangaPanels = (panels) => `
+  <div class="generated-panels story-timeline" aria-label="ヒアリング内容から生成した4コマ漫画">
     ${panels.map((panel, index) => `
-      <article class="generated-panel">
-        <div class="panel-order">${index + 1}</div>
-        <img src="${imageSources[index]}" alt="${index + 1}コマ目: ${escapeHtml(panel.title)}" />
+      <article class="generated-panel emotion-${escapeHtml(panel.emotion)}" style="--panel-index: ${index};">
+        <div class="panel-order" aria-label="${index + 1}コマ目">${index + 1}</div>
+        <div class="panel-media">
+          <img src="${panel.imagePath}" alt="${index + 1}コマ目: ${escapeHtml(panel.title)}" />
+        </div>
         <div class="panel-copy">
           <h3>${escapeHtml(panel.title)}</h3>
-          <p>${escapeHtml(panel.text)}</p>
+          <p class="panel-narration">${escapeHtml(panel.narration)}</p>
+          <p class="speech-bubble">${escapeHtml(panel.dialogue)}</p>
         </div>
+        ${index < panels.length - 1 ? `<div class="panel-connector" aria-hidden="true">次へ</div>` : ""}
       </article>
     `).join("")}
   </div>
 `;
 
+
+
 const buildRecruitingLp = (data, imageSources) => {
-  const panels = [
-    { title: "応募前の不安", text: "人間関係や未経験が不安で、応募ボタンの前で迷っている。" },
-    { title: "お店を知る", text: "研修あり、シフト相談可、まかないありの募集を見つける。" },
-    { title: "働く姿を想像", text: "最初は簡単な仕事から。先輩が横について教えてくれる。" },
-    { title: "一歩踏み出す", text: "自分の予定も大切にしながら働けそう、と応募へ進む。" },
-  ];
+  const panels = buildMangaPanelData(data, imageSources);
+  const problems = splitList(data.problem);
+  const strengths = splitList(data.strength);
+  const worryItems = (problems.length ? problems : ["人間関係の不安", "未経験の不安", "シフトの不安"]).slice(0, 3);
+  const benefitItems = (strengths.length ? strengths : ["研修あり", "シフト相談可", "まかないあり"]).slice(0, 3);
 
   return `
-    <main class="generated-lp recruiting">
-      <div class="sample-ribbon">架空店舗を使用した制作サンプルです / 実在店舗の募集情報ではありません</div>
+    <main class="generated-lp recruiting" style="${themeStyle(data)}">
+      ${sampleOnly(data, `<div class="sample-ribbon">架空店舗を使用した制作サンプルです / 実在店舗の募集情報ではありません</div>`)}
       <header class="generated-hero">
         <div class="generated-hero-inner">
-          <span class="generated-badge">飲食店スタッフ採用</span>
-          <p class="generated-kicker">RECRUIT SAMPLE / ${escapeHtml(data.business)}</p>
-          <h1>未経験でも、最初の一歩を<br>安心して踏み出せるラーメン店バイト</h1>
-          <p class="generated-sub">${escapeHtml(data.service)}｜人間関係・未経験・シフトの不安に寄り添う採用向け漫画LPです。</p>
-          <div class="hero-cta-row">${ctaLink(data)}<small>サンプル用リンクです</small></div>
+          <span class="generated-badge">${escapeHtml(data.service)} 採用</span>
+          <p class="generated-kicker">${isSampleLp(data) ? "RECRUIT SAMPLE" : "RECRUIT LP"} / ${escapeHtml(data.business)}</p>
+          <h1>${escapeHtml(data.target)}へ。<br>${escapeHtml(data.service)}の不安を漫画でほどく採用LP</h1>
+          <p class="generated-sub">${escapeHtml(data.problem)}に寄り添い、${escapeHtml(data.strength)}を応募前に分かりやすく伝えます。</p>
+          <div class="hero-cta-row">${ctaLink(data)}${sampleLinkNote(data)}</div>
         </div>
       </header>
 
       <section class="generated-section generated-problem">
-        ${sectionTitle("WORRY", "求職者の不安", "応募前の迷いを、漫画で分かりやすく受け止めます。")}
+        ${sectionTitle("WORRY", "求職者の不安", `${data.target}が応募前に感じる迷いを、最初の共感ポイントにします。`)}
         <div class="worry-list">
-          <p>人間関係が合わなかったらどうしよう</p>
-          <p>飲食未経験でも迷惑をかけないかな</p>
-          <p>学校や予定とシフトを両立できるかな</p>
+          ${worryItems.map((item) => `<p>${escapeHtml(item)}</p>`).join("")}
         </div>
       </section>
 
       <section class="generated-manga">
-        ${sectionTitle("MANGA", "4コマで分かる応募ストーリー")}
-        ${mangaPanels(panels, imageSources)}
-      </section>
-
-      <section class="generated-section generated-dark">
-        ${sectionTitle("BENEFIT", "働くメリット")}
-        <div class="generated-cards three">
-          <article><strong>01</strong><h3>研修あり</h3><p>最初は挨拶、片付け、簡単な案内から。段階的に慣れていけます。</p></article>
-          <article><strong>02</strong><h3>シフト相談可</h3><p>学業、予定、副業との両立を前提に相談できる見せ方です。</p></article>
-          <article><strong>03</strong><h3>まかないあり</h3><p>働く楽しみが伝わる、飲食店らしい魅力として表現します。</p></article>
-        </div>
-      </section>
-
-      <section class="generated-section generated-reasons">
-        ${sectionTitle("REASON", "選ばれる理由")}
-        <div class="reason-stack">
-          <article><h3>新人が質問しやすい雰囲気</h3><p>${nl2br(data.strength)}</p></article>
-          <article><h3>応募前の不安を先回りして解消</h3><p>${nl2br(data.problem)}</p></article>
-          <article><h3>サンプルとして誤認を防ぐ表記</h3><p>${nl2br(data.achievement)}</p></article>
-        </div>
-        ${ctaLink(data, "secondary")}
-      </section>
-
-      <section class="generated-section generated-conditions">
-        ${sectionTitle("CONDITION", "勤務条件")}
-        <dl class="info-list">
-          <div><dt>募集職種</dt><dd>${escapeHtml(data.service)}</dd></div>
-          <div><dt>対象</dt><dd>未経験の学生、フリーターを想定したサンプル</dd></div>
-          <div><dt>シフト</dt><dd>相談しやすいことを訴求するサンプル表現</dd></div>
-          <div><dt>待遇</dt><dd>研修、まかない、相談しやすさを中心に表現</dd></div>
-        </dl>
-      </section>
-
-      <section class="generated-section generated-faq">
-        ${sectionTitle("FAQ", "よくある質問")}
-        <details open><summary>未経験でも応募できますか？</summary><p>はい。未経験者にも分かる研修がある、という想定のサンプルLPです。</p></details>
-        <details><summary>シフトは相談できますか？</summary><p>学校や予定との両立を相談できる見せ方にしています。実際の条件は公開前に差し替えてください。</p></details>
-        <details><summary>この内容は実在の募集ですか？</summary><p>いいえ。これは制作確認用のサンプルで、実在店舗の募集情報ではありません。</p></details>
-      </section>
-
-      <section class="generated-cta-section">
-        <p>人間関係、未経験、シフトの不安を減らして、応募の一歩を後押しします。</p>
-        ${ctaLink(data)}
-        <small>${escapeHtml(data.business)}｜${escapeHtml(data.service)}｜サンプルLP</small>
-      </section>
-    </main>
-  `;
-};
-
-const buildLeadgenLp = (data, imageSources) => {
-  const panels = [
-    { title: "店選びで迷う", text: "初めての店で失敗したくない。味も雰囲気も分からず決めきれない。" },
-    { title: "こだわりを知る", text: "スープ、自家製麺、限定特典がひと目で伝わる。" },
-    { title: "食べたい気持ちが高まる", text: "香りや湯気、満足感を漫画でイメージできる。" },
-    { title: "来店情報を確認", text: "不安が減り、来店・予約情報を見る流れへ進む。" },
-  ];
-
-  return `
-    <main class="generated-lp leadgen">
-      <div class="sample-ribbon">架空店舗を使用した制作サンプルです / 実在店舗の口コミや実績ではありません</div>
-      <header class="generated-hero">
-        <div class="generated-hero-inner">
-          <span class="generated-badge">新規来店・予約獲得</span>
-          <p class="generated-kicker">VISIT SAMPLE / ${escapeHtml(data.business)}</p>
-          <h1>初めてでも外したくない人へ。<br>こだわりが伝わるラーメン体験を</h1>
-          <p class="generated-sub">${escapeHtml(data.service)}｜店選びの不安を、漫画と情報整理で来店意欲へ変えます。</p>
-          <div class="hero-cta-row">${ctaLink(data)}<small>サンプル用リンクです</small></div>
-        </div>
-      </header>
-
-      <section class="generated-section generated-problem">
-        ${sectionTitle("WORRY", "顧客の悩み", "初回来店者が知りたいことを、先回りして見せます。")}
-        <div class="worry-list">
-          <p>初めての店で失敗したくない</p>
-          <p>味や雰囲気が自分に合うか分からない</p>
-          <p>来店前におすすめや特典を知りたい</p>
-        </div>
-      </section>
-
-      <section class="generated-manga">
-        ${sectionTitle("MANGA", "4コマで分かる来店ストーリー")}
-        ${mangaPanels(panels, imageSources)}
+        ${sectionTitle("MANGA", "ヒアリングから生成した4コマ応募ストーリー", `${data.character}が登場し、悩みから${data.cta.label}までを自然につなげます。`)}
+        ${assetNotice(data)}
+        ${mangaPanels(panels)}
       </section>
 
       <section class="generated-section generated-solution">
-        ${sectionTitle("SOLUTION", "商品・店舗による解決")}
+        ${sectionTitle("SOLUTION", "職場による解決", `${data.service}として伝えるべき強みを、応募前の安心材料に変えます。`)}
         <p>${nl2br(data.strength)}</p>
         ${ctaLink(data, "secondary")}
       </section>
@@ -475,43 +512,184 @@ const buildLeadgenLp = (data, imageSources) => {
       <section class="generated-section generated-dark">
         ${sectionTitle("REASON", "選ばれる理由")}
         <div class="generated-cards three">
-          <article><strong>01</strong><h3>こだわりスープ</h3><p>味の期待値を高める表現で、初回来店前の不安を減らします。</p></article>
-          <article><strong>02</strong><h3>自家製麺</h3><p>商品の特徴を短く具体的に見せ、記憶に残るLPにします。</p></article>
-          <article><strong>03</strong><h3>限定特典</h3><p>来店・予約情報を見る理由を自然に作ります。</p></article>
+          ${benefitItems.map((item, index) => `<article><strong>${String(index + 1).padStart(2, "0")}</strong><h3>${escapeHtml(item)}</h3><p>${escapeHtml(data.target)}が抱える不安を減らし、応募前に働く姿を想像しやすくします。</p></article>`).join("")}
         </div>
       </section>
 
-      <section class="generated-section generated-menu">
-        ${sectionTitle("MENU", "おすすめ商品")}
-        <div class="menu-list">
-          <article><h3>看板ラーメン</h3><p>こだわりスープと自家製麺を伝えるためのサンプル商品です。</p></article>
-          <article><h3>初回限定セット</h3><p>限定特典を訴求するためのサンプル構成です。</p></article>
-          <article><h3>季節の一杯</h3><p>再訪やSNS共有につなげるためのサンプル枠です。</p></article>
-        </div>
-      </section>
-
-      <section class="generated-section generated-voices">
-        ${sectionTitle("VOICE", "利用者の声", "すべてサンプル・イメージ表現です。")}
-        <div class="voice-list">
-          <blockquote><b>サンプル</b><p>初めてでも雰囲気が分かって、入りやすそうだと感じました。</p></blockquote>
-          <blockquote><b>イメージ</b><p>おすすめや特典が先に分かるので、来店前の迷いが減りました。</p></blockquote>
+      <section class="generated-section generated-reasons">
+        ${sectionTitle("PROOF", "実績・安心材料", isSampleLp(data) ? "公開前に実情報へ差し替える前提のサンプル表記です。" : "")}
+        <div class="reason-stack">
+          <article><h3>入力された安心材料</h3><p>${nl2br(data.achievement)}</p></article>
+          <article><h3>伝えたい雰囲気</h3><p>${escapeHtml(data.tone)}な印象で、${escapeHtml(data.character)}が応募前の不安を受け止めます。</p></article>
+          <article><h3>カラーイメージ</h3><p>${escapeHtml(data.color)}</p></article>
         </div>
       </section>
 
       <section class="generated-section generated-faq">
         ${sectionTitle("FAQ", "よくある質問")}
-        <details open><summary>この口コミは実在しますか？</summary><p>いいえ。利用者の声はサンプル・イメージ表現です。</p></details>
-        <details><summary>予約や来店情報はどこで見ますか？</summary><p>CTAボタンからサンプル用リンクへ遷移します。公開時に実URLへ差し替えてください。</p></details>
-        <details><summary>住所や電話番号は掲載していますか？</summary><p>誤認防止のため、このサンプルでは仮住所や仮電話番号を掲載していません。</p></details>
+        <details open><summary>未経験でも応募できますか？</summary><p>${escapeHtml(firstItem(data.strength, "研修あり"))}を伝えることで、初めてでも始めやすい印象を作ります。</p></details>
+        <details><summary>シフトは相談できますか？</summary><p>${escapeHtml(data.problem)}が不安な方へ、条件や相談しやすさを公開前に具体情報へ差し替えてください。</p></details>
+        ${sampleOnly(data, `<details><summary>この内容は実在の募集ですか？</summary><p>いいえ。これは制作確認用のサンプルで、実在店舗の募集情報ではありません。</p></details>`)}
       </section>
 
       <section class="generated-cta-section">
-        <p>店選びで迷う人に、味・雰囲気・来店理由を分かりやすく届けます。</p>
+        <p>${escapeHtml(data.problem)}を減らし、${escapeHtml(data.service)}への応募行動につなげます。</p>
         ${ctaLink(data)}
-        <small>${escapeHtml(data.business)}｜${escapeHtml(data.service)}｜サンプルLP</small>
+        <small>${escapeHtml(data.business)}｜${escapeHtml(data.service)}｜${sampleLpLabel(data)}</small>
       </section>
     </main>
   `;
+};
+
+const buildLeadgenLp = (data, imageSources) => {
+  const panels = buildMangaPanelData(data, imageSources);
+  const problems = splitList(data.problem);
+  const strengths = splitList(data.strength);
+  const worryItems = (problems.length ? problems : ["店選びで失敗したくない", "味や雰囲気が分からない", "来店前に判断材料がほしい"]).slice(0, 3);
+  const reasonItems = (strengths.length ? strengths : ["こだわりスープ", "自家製麺", "限定特典"]).slice(0, 3);
+
+  return `
+    <main class="generated-lp leadgen" style="${themeStyle(data)}">
+      ${sampleOnly(data, `<div class="sample-ribbon">架空店舗を使用した制作サンプルです / 実在店舗の口コミや実績ではありません</div>`)}
+      <header class="generated-hero">
+        <div class="generated-hero-inner">
+          <span class="generated-badge">${escapeHtml(data.service)} 集客</span>
+          <p class="generated-kicker">${isSampleLp(data) ? "VISIT SAMPLE" : "VISIT LP"} / ${escapeHtml(data.business)}</p>
+          <h1>${escapeHtml(data.target)}へ。<br>${escapeHtml(data.service)}の魅力を漫画で届ける集客LP</h1>
+          <p class="generated-sub">${escapeHtml(data.problem)}という迷いを、${escapeHtml(data.strength)}への期待に変えます。</p>
+          <div class="hero-cta-row">${ctaLink(data)}${sampleLinkNote(data)}</div>
+        </div>
+      </header>
+
+      <section class="generated-section generated-problem">
+        ${sectionTitle("WORRY", "顧客の悩み", `${data.target}が来店前に感じる迷いを先回りして言語化します。`)}
+        <div class="worry-list">
+          ${worryItems.map((item) => `<p>${escapeHtml(item)}</p>`).join("")}
+        </div>
+      </section>
+
+      <section class="generated-manga">
+        ${sectionTitle("MANGA", "ヒアリングから生成した4コマ来店ストーリー", `${data.character}を通じて、迷いから${data.cta.label}までを描きます。`)}
+        ${assetNotice(data)}
+        ${mangaPanels(panels)}
+      </section>
+
+      <section class="generated-section generated-solution">
+        ${sectionTitle("SOLUTION", "商品・店舗による解決", `${data.service}の魅力を、来店前に判断しやすい情報へ整理します。`)}
+        <p>${nl2br(data.strength)}</p>
+        ${ctaLink(data, "secondary")}
+      </section>
+
+      <section class="generated-section generated-dark">
+        ${sectionTitle("REASON", "選ばれる理由")}
+        <div class="generated-cards three">
+          ${reasonItems.map((item, index) => `<article><strong>${String(index + 1).padStart(2, "0")}</strong><h3>${escapeHtml(item)}</h3><p>${escapeHtml(data.problem)}という迷いを減らし、来店前の期待値を高めます。</p></article>`).join("")}
+        </div>
+      </section>
+
+      <section class="generated-section generated-voices">
+        ${sectionTitle("PROOF", "実績・安心材料", isSampleLp(data) ? "すべてサンプル・イメージ表現です。" : "")}
+        <div class="voice-list">
+          <blockquote><b>${isSampleLp(data) ? "サンプル" : "安心材料"}</b><p>${nl2br(data.achievement)}</p></blockquote>
+          <blockquote><b>${isSampleLp(data) ? "イメージ" : "表現トーン"}</b><p>${escapeHtml(data.tone)}な見せ方で、${escapeHtml(data.color)}の印象を活かします。</p></blockquote>
+        </div>
+      </section>
+
+      <section class="generated-section generated-faq">
+        ${sectionTitle("FAQ", "よくある質問")}
+        ${sampleOnly(data, `<details open><summary>この口コミは実在しますか？</summary><p>いいえ。利用者の声はサンプル・イメージ表現です。</p></details>`)}
+        <details><summary>来店前に何が分かりますか？</summary><p>${escapeHtml(data.service)}の特徴や、${escapeHtml(data.strength)}を分かりやすく確認できます。</p></details>
+        <details><summary>予約や来店情報はどこで見ますか？</summary><p>${escapeHtml(data.cta.label)}からリンク先へ遷移します。公開時に実URLへ差し替えてください。</p></details>
+      </section>
+
+      <section class="generated-cta-section">
+        <p>${escapeHtml(data.problem)}を減らし、${escapeHtml(data.business)}への来店行動につなげます。</p>
+        ${ctaLink(data)}
+        <small>${escapeHtml(data.business)}｜${escapeHtml(data.service)}｜${sampleLpLabel(data)}</small>
+      </section>
+    </main>
+  `;
+};
+
+
+
+const buildMotionScript = () => `
+<script>
+(() => {
+  const init = () => {
+    const panels = Array.from(document.querySelectorAll(".generated-panel"));
+    const ctas = Array.from(document.querySelectorAll(".generated-cta"));
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.documentElement.classList.toggle("motion-ready", !reduceMotion && ("IntersectionObserver" in window));
+    if (reduceMotion || !("IntersectionObserver" in window)) {
+      panels.forEach((panel) => panel.classList.add("is-visible"));
+      ctas.forEach((cta) => cta.classList.add("cta-pulse-visible"));
+      return;
+    }
+    let nextPanelIndex = 0;
+    const revealNext = () => {
+      const panel = panels[nextPanelIndex];
+      if (!panel) return;
+      const rect = panel.getBoundingClientRect();
+      const ready = panel.dataset.revealPending === "true" || rect.top < window.innerHeight * 0.88;
+      if (!ready) return;
+      panel.classList.add("is-visible");
+      observer.unobserve(panel);
+      nextPanelIndex += 1;
+      window.setTimeout(revealNext, 180);
+    };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.dataset.revealPending = "true";
+          revealNext();
+        }
+      });
+    }, { threshold: 0.28, rootMargin: "0px 0px -8% 0px" });
+    panels.forEach((panel) => observer.observe(panel));
+    ctas.forEach((cta) => cta.classList.add("cta-pulse-visible"));
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+})();
+</script>`;
+
+const initGeneratedLpMotion = (root = document) => {
+  const scope = root.querySelectorAll ? root : document;
+  const panels = Array.from(scope.querySelectorAll(".generated-panel"));
+  const ctas = Array.from(scope.querySelectorAll(".generated-cta"));
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  document.documentElement.classList.toggle("motion-ready", !reduceMotion && ("IntersectionObserver" in window));
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    panels.forEach((panel) => panel.classList.add("is-visible"));
+    ctas.forEach((cta) => cta.classList.add("cta-pulse-visible"));
+    return;
+  }
+  let nextPanelIndex = 0;
+  const revealNext = () => {
+    const panel = panels[nextPanelIndex];
+    if (!panel) return;
+    const rect = panel.getBoundingClientRect();
+    const ready = panel.dataset.revealPending === "true" || rect.top < window.innerHeight * 0.88;
+    if (!ready) return;
+    panel.classList.add("is-visible");
+    observer.unobserve(panel);
+    nextPanelIndex += 1;
+    window.setTimeout(revealNext, 180);
+  };
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.dataset.revealPending = "true";
+        revealNext();
+      }
+    });
+  }, { threshold: 0.28, rootMargin: "0px 0px -8% 0px" });
+  panels.forEach((panel) => observer.observe(panel));
+  ctas.forEach((cta) => cta.classList.add("cta-pulse-visible"));
 };
 
 const buildFullHtml = (data, body) => `<!doctype html>
@@ -526,9 +704,12 @@ ${getInlineStyles()}
 </head>
 <body class="generated-page">
 ${body}
+${buildMotionScript()}
 </body>
 </html>
 `;
+
+
 
 const makeFileName = (data) => {
   const type = data.lpType === "recruiting" ? "recruiting" : "leadgen";
@@ -621,6 +802,7 @@ form?.addEventListener("submit", async (event) => {
     promptsOutput.textContent = prompts;
     copiesOutput.textContent = copies;
     previewRoot.innerHTML = lpBody;
+    initGeneratedLpMotion(previewRoot);
     generatedHtml = buildFullHtml(data, lpBody);
     generatedFileName = makeFileName(data);
     if (htmlSource) {
