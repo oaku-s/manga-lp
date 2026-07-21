@@ -44,7 +44,7 @@ const sampleData = {
     isSample: true,
     outputMode: "delivery",
     lpType: "recruiting",
-    business: "サンプルラーメン まる福",
+    business: "ラーメン まる福",
     service: "ホール・調理補助スタッフ",
     target: "未経験の学生、フリーター。初めての飲食バイトで、人間関係やシフトに不安がある方",
     problem: "人間関係がこわい、未経験で迷惑をかけそう、学校や予定とシフトを両立できるか不安",
@@ -60,7 +60,7 @@ const sampleData = {
     isSample: true,
     outputMode: "delivery",
     lpType: "leadgen",
-    business: "サンプルラーメン まる福",
+    business: "ラーメン まる福",
     service: "こだわりスープと自家製麺のラーメン",
     target: "近隣のラーメン好き、初回来店者。店選びで失敗したくない方",
     problem: "初めてのお店で味や雰囲気が分からず、外したくないと思っている",
@@ -265,6 +265,65 @@ const listItems = (value, fallbackItems) => {
 
 const firstCleanItem = (value, fallback) => listItems(value, [fallback])[0] || fallback;
 
+const uniqueItems = (items) => [...new Set(items.filter(Boolean))];
+
+const normalizeStrengthItem = (value) =>
+  cleanItem(value)
+    .replace(/(あり|有り|可)$/g, "")
+    .replace(/向けの?$/g, "")
+    .trim();
+
+const listStrengthItems = (value, fallbackItems) => {
+  const items = splitList(value).map((item) => normalizeStrengthItem(item)).filter(Boolean);
+  return items.length ? items : fallbackItems;
+};
+
+const normalizeProblemDisplay = (value, lpType) => {
+  const item = cleanItem(value);
+  if (!item) return "";
+  if (/味|雰囲気/.test(item) && /分から|わから/.test(item)) return "味や雰囲気が分からない";
+  if (/外したくない|失敗したくない/.test(item)) return "店選びで失敗したくない";
+  if (/人間関係/.test(item)) return "人間関係の不安";
+  if (/未経験/.test(item)) return "未経験の不安";
+  if (/シフト/.test(item)) return "シフトの両立が不安";
+  if (/通院/.test(item)) return "通院への不安";
+  if (/肩こり/.test(item)) return "肩こり";
+  if (/繰り返す不調/.test(item)) return "繰り返す不調";
+  return lpType === "recruiting"
+    ? item
+        .replace(/がこわい$/, "の不安")
+        .replace(/が怖い$/, "の不安")
+        .replace(/で迷惑をかけそう$/, "の不安")
+    : item
+        .replace(/と思っている$/, "")
+        .replace(/が分からず$/, "が分からない")
+        .replace(/がわからず$/, "が分からない");
+};
+
+const normalizeProblemTheme = (value, lpType) => {
+  const item = cleanItem(value);
+  if (!item) return "";
+  if (/味|雰囲気/.test(item)) return "味や雰囲気";
+  if (/外したくない|失敗したくない/.test(item)) return lpType === "leadgen" ? "店選び" : "失敗への不安";
+  if (/人間関係/.test(item)) return "人間関係";
+  if (/未経験/.test(item)) return "未経験";
+  if (/シフト/.test(item)) return "シフト";
+  if (/教育環境/.test(item)) return "教育環境";
+  if (/残業/.test(item)) return "残業";
+  if (/キャリア|将来/.test(item)) return "将来のキャリア";
+  if (/肩こり/.test(item)) return "肩こり";
+  if (/繰り返す不調/.test(item)) return "繰り返す不調";
+  if (/通院/.test(item)) return "通院への不安";
+  return normalizeProblemDisplay(item, lpType)
+    .replace(/への不安$/, "")
+    .replace(/の不安$/, "")
+    .replace(/が不安$/, "")
+    .replace(/に不安$/, "")
+    .replace(/を抱える$/, "")
+    .replace(/と思っている$/, "")
+    .trim();
+};
+
 const joinItems = (items) => {
   const filtered = items.filter(Boolean);
   if (filtered.length <= 1) return filtered[0] || "";
@@ -287,7 +346,7 @@ const tonePhrase = (value) => {
 
 const colorPhrase = (value) => {
   const color = cleanItem(value, "ブランドに合う色合い");
-  return /印象$/.test(color) ? color : `${color}の印象`;
+  return /印象$/.test(color) ? color.replace(/印象$/, "見た目") : `${color}の見た目`;
 };
 
 const concernLead = (problemSummary) =>
@@ -296,6 +355,75 @@ const concernLead = (problemSummary) =>
     : /(不安|心配|悩み|迷い)$/.test(problemSummary)
       ? `${problemSummary}に悩む方へ`
       : `${problemSummary}が気になる方へ`;
+
+const buildProblemLead = (lpType, themes) => {
+  const themeText = joinItems(themes.slice(0, 3));
+  if (lpType === "recruiting") {
+    return themeText ? `${themeText}に不安がある方へ` : "応募前に不安がある方へ";
+  }
+  if (themes.includes("味や雰囲気") && themes.includes("店選び")) {
+    return "味や雰囲気を事前に知り、店選びで失敗したくない方へ";
+  }
+  if (themes.includes("店選び")) return "店選びで失敗したくない方へ";
+  return themeText ? `${themeText}で迷っている方へ` : "選ぶ前に迷っている方へ";
+};
+
+const buildStrengthLead = (lpType, strengths) => {
+  const strengthText = joinItems(strengths.slice(0, 3));
+  if (lpType === "recruiting") {
+    if (/研修/.test(strengthText) && /シフト/.test(strengthText)) {
+      return "最初は簡単な仕事から。店長や先輩が一つずつ教えるので、初めての飲食バイトでも安心です。学校や予定に合わせてシフトも相談できます。";
+    }
+    return `${strengthText}を確認できるため、初めてでも働き方をイメージしやすくなります。`;
+  }
+  if (/スープ/.test(strengthText) && /麺/.test(strengthText)) {
+    return "スープと麺へのこだわりやおすすめを知れば、初めてでも安心して足を運べます。";
+  }
+  return `${strengthText}を知ることで、初めてでも足を運びやすくなります。`;
+};
+
+const buildProblemResolve = (lpType, themes) => {
+  const themeText = joinItems(themes.slice(0, 3));
+  if (lpType === "recruiting") {
+    return "研修や働き方を確認して";
+  }
+  if (themes.includes("味や雰囲気") && themes.includes("店選び")) {
+    return "メニューや来店情報を確認して";
+  }
+  return themeText ? `${themeText}について確認して` : "来店前の気になる点を確認して";
+};
+
+const buildLeadgenProblemScene = (model, visitLabel, placeLabel) => {
+  if (model.problemThemes.includes("味や雰囲気") && model.problemThemes.includes("店選び")) {
+    return `近くでラーメン店を探しているが、初めての${placeLabel}なので味や雰囲気が分からず迷っている。`;
+  }
+  return `${model.target}が${model.problemSummary || "選ぶ前の不安"}を抱え、初めて${visitLabel}する${placeLabel}を決めきれずにいる。`;
+};
+
+const buildRecruitingFirstScene = (data, model) => {
+  if (isFoodBusiness(data) && /未経験|学生|フリーター|初めて/.test(`${data.target} ${data.problem}`)) {
+    return "初めての飲食バイトを探しているが、職場になじめるか、仕事を覚えられるか不安で応募を迷っている。";
+  }
+  return `${model.target}が${model.problemAnxiety}を抱え、応募するか迷っている。`;
+};
+
+const buildRecruitingSecondScene = (model) =>
+  /研修/.test(model.strengthSummary) && /シフト/.test(model.strengthSummary)
+    ? "研修があり、シフトも相談できることを知って、少し安心する。"
+    : `${model.strengthSummary}を知って、応募前の不安が少し軽くなる。`;
+
+const buildRecruitingSecondDialogue = (model) =>
+  /研修/.test(model.strengthSummary) && /シフト/.test(model.strengthSummary)
+    ? "研修もあるし、シフトも相談できるんだ"
+    : `${model.firstStrength}なら、始めやすそう`;
+
+const mentorLabel = (character) => {
+  if (/先輩スタイリスト/.test(character)) return "先輩スタイリスト";
+  if (/先輩/.test(character)) return "先輩スタッフ";
+  if (/店長/.test(character)) return "店長や先輩";
+  if (/担当|講師|教育/.test(character)) return "担当者";
+  return "先輩スタッフ";
+};
 
 const stripCtaSubject = (ctaLabel) =>
   cleanItem(ctaLabel, "詳しく見る")
@@ -333,11 +461,16 @@ const isFoodBusiness = (data) =>
 const proofText = (data) => {
   if (isSampleLp(data) && isDeliveryMode(data)) {
     return data.lpType === "recruiting"
-      ? "掲載内容は架空の募集例です。実在する募集条件や実績ではありません"
-      : "掲載内容は架空の来店例です。実在する口コミや実績ではありません";
+      ? "仕事内容や職場の雰囲気を応募前に確認できるため、初めてでも判断しやすくなります"
+      : "来店前に商品や店の様子を知ることで、初めてでも足を運びやすくなります";
   }
   return cleanSentence(data.achievement, "安心して判断できる材料があります");
 };
+
+const sampleRibbonText = (data) =>
+  data.lpType === "recruiting"
+    ? "架空店舗を使用したサンプルです / 実在店舗の募集情報ではありません"
+    : "架空店舗を使用したサンプルです / 表示内容は実在店舗の情報ではありません";
 
 const describeStrength = (item, data) => {
   const strength = cleanItem(item, "魅力");
@@ -358,13 +491,13 @@ const describeStrength = (item, data) => {
   }
 
   if (/スープ|味|素材|こだわり/.test(strength)) {
-    return "味への期待を高め、初めてでも選ぶ理由になります。";
+    return "ひと口目の満足感を想像しやすく、初めてでも期待して足を運べます。";
   }
   if (/麺|自家製|商品|メニュー/.test(strength)) {
-    return "他との違いが伝わり、食べる前から楽しみが生まれます。";
+    return "スープとの相性まで楽しめる一杯として、食べる前から期待がふくらみます。";
   }
   if (/特典|限定|初回|クーポン/.test(strength)) {
-    return "初めて試すきっかけになり、迷っている人の背中を押します。";
+    return "初回来店のきっかけになり、気になっていたお店へ足を運びやすくなります。";
   }
   if (/予約/.test(strength)) {
     return "予定を立てやすく、待ち時間や混雑への不安を減らせます。";
@@ -380,18 +513,38 @@ const describeStrength = (item, data) => {
 
 const messageModel = (data) => {
   const target = shortAudience(data.target, data.lpType === "recruiting" ? "求職者" : "お客様");
-  const problems = listItems(data.problem, data.lpType === "recruiting"
+  const rawProblems = listItems(data.problem, data.lpType === "recruiting"
     ? ["未経験への不安", "人間関係の不安", "シフトの不安"]
     : ["選ぶ前の不安", "失敗したくない気持ち", "判断材料の少なさ"]);
-  const strengths = listItems(data.strength, data.lpType === "recruiting"
-    ? ["研修あり", "シフト相談可", "まかないあり"]
+  const problems = uniqueItems(rawProblems.map((item) => normalizeProblemDisplay(item, data.lpType))).filter(Boolean);
+  const problemThemes = uniqueItems(rawProblems.map((item) => normalizeProblemTheme(item, data.lpType))).filter(Boolean);
+  const strengths = listStrengthItems(data.strength, data.lpType === "recruiting"
+    ? ["研修", "シフト相談", "まかない"]
     : ["こだわり", "分かりやすい魅力", "利用しやすさ"]);
   const firstProblem = problems[0];
   const firstStrength = strengths[0];
   const strengthSummary = joinItems(strengths.slice(0, 3));
-  const problemSummary = joinItems(problems.slice(0, 3));
+  const problemSummary = joinItems(problemThemes.slice(0, 3)) || joinItems(problems.slice(0, 3));
+  const problemAnxiety = problemSummary ? `${problemSummary}への不安` : "応募前の不安";
+  const problemLead = buildProblemLead(data.lpType, problemThemes);
+  const strengthLead = buildStrengthLead(data.lpType, strengths);
+  const problemResolve = buildProblemResolve(data.lpType, problemThemes);
   const proof = proofText(data);
-  return { target, problems, strengths, firstProblem, firstStrength, strengthSummary, problemSummary, proof };
+  return {
+    target,
+    problems,
+    problemThemes,
+    strengths,
+    firstProblem,
+    firstStrength,
+    strengthSummary,
+    problemSummary,
+    problemAnxiety,
+    problemLead,
+    strengthLead,
+    problemResolve,
+    proof,
+  };
 };
 
 const buildMangaPanelData = (data, imageSources = []) => {
@@ -410,53 +563,53 @@ const buildMangaPanelData = (data, imageSources = []) => {
   const panels = data.lpType === "recruiting"
     ? [
         {
-          title: "応募前の不安",
-          narration: `${model.target}が${model.problemSummary}に悩み、応募するか迷っている。`,
-          dialogue: `「${worryDialogueText(model.firstProblem, data.lpType)}」`,
+          title: "応募を迷う",
+          narration: buildRecruitingFirstScene(data, model),
+          dialogue: "「初めてのバイト、ちゃんと続けられるかな……」",
           emotion: "worry",
         },
         {
-          title: "募集内容を知って安心",
-          narration: `${business}の${service}を知り、${model.strengthSummary}があることに安心する。`,
-          dialogue: `「${model.firstStrength}なら、最初の一歩を踏み出せそう」`,
+          title: "働きやすさを知る",
+          narration: buildRecruitingSecondScene(model),
+          dialogue: `「${buildRecruitingSecondDialogue(model)}」`,
           emotion: "notice",
         },
         {
-          title: `${model.firstStrength}を体験`,
-          narration: `${character}に教わりながら、${model.firstStrength}を実際の仕事の中で体験する。`,
-          dialogue: "「教わりながらなら、少しずつ成長できそう」",
+          title: "初日の姿が浮かぶ",
+          narration: `最初は案内や片付けなど簡単な仕事から。${mentorLabel(character)}がそばで教えてくれる働き方をイメージする。`,
+          dialogue: "「これなら少しずつ覚えられそう」",
           emotion: "hope",
         },
         {
-          title: "応募を決意",
-          narration: `${model.proof}。不安が前向きな気持ちへ変わる。`,
-          dialogue: `「${finalDialogue}」`,
+          title: "最初の一歩を踏み出す",
+          narration: "無理なく働き始める姿が浮かび、応募してみようと決める。",
+          dialogue: "「ここなら安心して始められそう。応募してみよう」",
           emotion: "decide",
         },
       ]
     : [
         {
-          title: `${placeLabel}選びで迷う`,
-          narration: `${model.target}が${model.problemSummary}を感じ、初めて${visitLabel}する${placeLabel}を決めきれずにいる。`,
-          dialogue: `「${worryDialogueText(model.firstProblem, data.lpType)}」`,
+          title: "気になるけれど迷う",
+          narration: buildLeadgenProblemScene(model, visitLabel, placeLabel),
+          dialogue: "「気になるけど、外したくないな……」",
           emotion: "worry",
         },
         {
-          title: "魅力を知る",
-          narration: `${business}の${service}を知り、${model.strengthSummary}が選ぶ理由になる。`,
-          dialogue: `「${model.firstStrength}なら、期待できそう」`,
+          title: "店のこだわりを知る",
+          narration: "スープだけでなく、麺も自家製であることを知る。",
+          dialogue: "「スープだけじゃなく、麺も自家製なんだ」",
           emotion: "notice",
         },
         {
-          title: `${model.firstStrength}を体感`,
-          narration: `${model.firstStrength}を通じて${service}の魅力を体験し、選ぶ前の不安が満足感へ変わる。`,
-          dialogue: `「${leadgenExperienceDialogue}」`,
+          title: "一度食べてみたくなる",
+          narration: "こだわりスープと自家製麺の組み合わせを知り、実際に味わってみたくなる。",
+          dialogue: "「これは一度食べてみたい」",
           emotion: "delight",
         },
         {
-          title: "来店・予約を決意",
-          narration: `${model.proof}。次の行動として${stripCtaSubject(ctaLabel)}へ進む。`,
-          dialogue: `「${finalDialogue}」`,
+          title: "今日の一杯を決める",
+          narration: "店の特徴が分かり、次に食べる一杯として選ぶ。",
+          dialogue: "「今日の一杯は、ここにしよう」",
           emotion: "decide",
         },
       ];
@@ -623,13 +776,13 @@ const buildRecruitingLp = (data, imageSources) => {
 
   return `
     <main class="generated-lp recruiting" data-output-mode="${escapeHtml(data.outputMode || "delivery")}" style="${themeStyle(data)}">
-      ${sampleOnly(data, `<div class="sample-ribbon">架空店舗を使用したサンプルです / 実在店舗の募集情報ではありません</div>`)}
+      ${sampleOnly(data, `<div class="sample-ribbon">${sampleRibbonText(data)}</div>`)}
       <header class="generated-hero">
         <div class="generated-hero-inner">
           <span class="generated-badge">${escapeHtml(data.service)} 採用</span>
-          <p class="generated-kicker">${isSampleLp(data) ? "RECRUIT SAMPLE" : "RECRUIT"} / ${escapeHtml(data.business)}</p>
+          <p class="generated-kicker">RECRUIT / ${escapeHtml(data.business)}</p>
           <h1>${escapeHtml(model.target)}へ。<br>${escapeHtml(data.service)}で安心して働ける理由</h1>
-          <p class="generated-sub">${escapeHtml(model.problemSummary)}に悩む方へ。${escapeHtml(model.strengthSummary)}があるから、応募前の不安を減らせます。</p>
+          <p class="generated-sub">${escapeHtml(model.problemLead)}。${escapeHtml(model.strengthLead)}</p>
           <div class="hero-cta-row">${ctaLink(data)}${sampleLinkNote(data)}</div>
         </div>
       </header>
@@ -642,42 +795,41 @@ const buildRecruitingLp = (data, imageSources) => {
       </section>
 
       <section class="generated-manga">
-        ${sectionTitle("STORY", isDeliveryMode(data) ? "4コマ応募ストーリー" : "ヒアリングから生成した4コマ応募ストーリー", `${data.character}との出会いをきっかけに、応募前の迷いが前向きな気持ちへ変わります。`)}
+        ${sectionTitle("STORY", isDeliveryMode(data) ? "4コマ応募ストーリー" : "ヒアリングから生成した4コマ応募ストーリー", "応募を迷うところから、最初の一歩を決めるまでの流れです。")}
         ${assetNotice(data)}
         ${mangaPanels(panels, data)}
       </section>
 
       <section class="generated-section generated-solution">
         ${sectionTitle("SOLUTION", "働きやすさの理由", `${data.service}として安心して働けるポイントです。`)}
-        <p>${escapeHtml(model.strengthSummary)}により、応募前の迷いを減らして働く姿を想像しやすくします。</p>
+        <p>研修やシフト相談を確認できるため、初めてでも働き始める姿をイメージしやすくなります。</p>
         ${ctaLink(data, "secondary")}
       </section>
 
       <section class="generated-section generated-dark">
-        ${sectionTitle("REASON", "選ばれる理由")}
+        ${sectionTitle("REASON", "初めてでも始めやすい理由")}
         <div class="generated-cards three">
           ${benefitItems.map((item, index) => `<article><strong>${String(index + 1).padStart(2, "0")}</strong><h3>${escapeHtml(item)}</h3><p>${escapeHtml(describeStrength(item, data))}</p></article>`).join("")}
         </div>
       </section>
 
       <section class="generated-section generated-reasons">
-        ${sectionTitle("PROOF", "安心材料", isSampleLp(data) ? "掲載内容は架空の例です。" : "")}
+        ${sectionTitle("PROOF", "働き方について", "応募前に確認しておきたいポイントです。")}
         <div class="reason-stack">
-          <article><h3>安心できる材料</h3><p>${escapeHtml(model.proof)}</p></article>
-          <article><h3>職場の雰囲気</h3><p>${escapeHtml(tonePhrase(data.tone))}の中で、${escapeHtml(data.character)}が応募前の不安を受け止めます。</p></article>
-          <article><h3>印象</h3><p>${escapeHtml(colorPhrase(data.color))}</p></article>
+          <article><h3>応募前に分かること</h3><p>${escapeHtml(model.proof)}</p></article>
+          <article><h3>相談しやすい職場</h3><p>${escapeHtml(tonePhrase(data.tone))}の中で、応募前の不安を相談しやすくします。</p></article>
+          <article><h3>お店らしい活気</h3><p>${escapeHtml(colorPhrase(data.color))}</p></article>
         </div>
       </section>
 
       <section class="generated-section generated-faq">
-        ${sectionTitle("FAQ", "よくある質問")}
-        <details open><summary>未経験でも応募できますか？</summary><p>${escapeHtml(firstCleanItem(data.strength, "研修あり"))}があるため、初めてでも仕事を覚えやすい環境です。</p></details>
-        <details><summary>働き方は相談できますか？</summary><p>${escapeHtml(model.problemSummary)}が気になる方も、${escapeHtml(model.strengthSummary)}を確認できます。</p></details>
-        ${sampleOnly(data, `<details><summary>この内容は実在の募集ですか？</summary><p>いいえ。これは架空のサンプルで、実在店舗の募集情報ではありません。</p></details>`)}
+        ${sectionTitle("FAQ", "応募前によくある質問")}
+        <details open><summary>未経験でも応募できますか？</summary><p>${escapeHtml(model.firstStrength)}を確認できるため、初めてでも仕事を覚える流れをイメージしやすくなります。</p></details>
+        <details><summary>働き方は相談できますか？</summary><p>応募前に不安がある方も、${escapeHtml(model.strengthSummary)}を確認できます。</p></details>
       </section>
 
       <section class="generated-cta-section">
-        <p>${escapeHtml(model.problemSummary)}を一つずつ確認し、${escapeHtml(data.service)}への応募を前向きに考えられます。</p>
+        <p>研修や働き方を確認して、安心して最初の一歩を踏み出してください。</p>
         ${ctaLink(data)}
         <small>${escapeHtml(data.business)}｜${escapeHtml(data.service)}｜${sampleLpLabel(data)}</small>
       </section>
@@ -693,13 +845,13 @@ const buildLeadgenLp = (data, imageSources) => {
 
   return `
     <main class="generated-lp leadgen" data-output-mode="${escapeHtml(data.outputMode || "delivery")}" style="${themeStyle(data)}">
-      ${sampleOnly(data, `<div class="sample-ribbon">架空店舗を使用したサンプルです / 実在店舗の口コミや実績ではありません</div>`)}
+      ${sampleOnly(data, `<div class="sample-ribbon">${sampleRibbonText(data)}</div>`)}
       <header class="generated-hero">
         <div class="generated-hero-inner">
           <span class="generated-badge">${escapeHtml(data.service)} 集客</span>
-          <p class="generated-kicker">${isSampleLp(data) ? "VISIT SAMPLE" : "VISIT"} / ${escapeHtml(data.business)}</p>
-          <h1>${escapeHtml(model.target)}へ。<br>${escapeHtml(data.service)}を選びたくなる理由</h1>
-          <p class="generated-sub">${escapeHtml(concernLead(model.problemSummary))}。${escapeHtml(model.strengthSummary)}で、初めてでも選びやすくします。</p>
+          <p class="generated-kicker">VISIT / ${escapeHtml(data.business)}</p>
+          <h1>初めての方にも知ってほしい。<br>スープと自家製麺にこだわった一杯</h1>
+          <p class="generated-sub">味や雰囲気を確かめてから選びたい方へ。${escapeHtml(model.strengthLead)}</p>
           <div class="hero-cta-row">${ctaLink(data)}${sampleLinkNote(data)}</div>
         </div>
       </header>
@@ -718,35 +870,34 @@ const buildLeadgenLp = (data, imageSources) => {
       </section>
 
       <section class="generated-section generated-solution">
-        ${sectionTitle("SOLUTION", "選びやすい理由", `${data.service}の魅力を、利用前に分かりやすく確認できます。`)}
-        <p>${escapeHtml(model.strengthSummary)}により、初めてでも「行ってみたい」と思える判断材料が増えます。</p>
+        ${sectionTitle("SOLUTION", "気になる一杯", `${data.service}の特徴を来店前に知ることができます。`)}
+        <p>スープや自家製麺のこだわりを知ると、今日食べたい一杯をイメージしやすくなります。</p>
         ${ctaLink(data, "secondary")}
       </section>
 
       <section class="generated-section generated-dark">
-        ${sectionTitle("REASON", "選ばれる理由")}
+        ${sectionTitle("REASON", "お店のこだわり")}
         <div class="generated-cards three">
           ${reasonItems.map((item, index) => `<article><strong>${String(index + 1).padStart(2, "0")}</strong><h3>${escapeHtml(item)}</h3><p>${escapeHtml(describeStrength(item, data))}</p></article>`).join("")}
         </div>
       </section>
 
       <section class="generated-section generated-voices">
-        ${sectionTitle("PROOF", "安心材料", isSampleLp(data) ? "掲載内容は架空の例です。" : "")}
+        ${sectionTitle("PROOF", "初めて来店する方へ", "来店前に知っておきたいポイントです。")}
         <div class="voice-list">
-          <blockquote><b>安心材料</b><p>${escapeHtml(model.proof)}</p></blockquote>
-          <blockquote><b>雰囲気</b><p>${escapeHtml(tonePhrase(data.tone))}と${escapeHtml(colorPhrase(data.color))}で、選ぶ前の期待感を高めます。</p></blockquote>
+          <blockquote><b>来店前に分かること</b><p>${escapeHtml(model.proof)}</p></blockquote>
+          <blockquote><b>店内の空気感</b><p>${escapeHtml(tonePhrase(data.tone))}と${escapeHtml(colorPhrase(data.color))}で、食べに行く前の期待がふくらみます。</p></blockquote>
         </div>
       </section>
 
       <section class="generated-section generated-faq">
-        ${sectionTitle("FAQ", "よくある質問")}
-        ${sampleOnly(data, `<details open><summary>この口コミは実在しますか？</summary><p>いいえ。利用者の声はサンプル・イメージ表現です。</p></details>`)}
-        <details><summary>利用前に何が分かりますか？</summary><p>${escapeHtml(data.service)}の特徴や、${escapeHtml(model.strengthSummary)}を確認できます。</p></details>
-        <details><summary>予約や来店情報はどこで見ますか？</summary><p>${escapeHtml(data.cta.label)}から詳しい情報を確認できます。</p></details>
+        ${sectionTitle("FAQ", "来店前によくある質問")}
+        <details open><summary>来店前に何が分かりますか？</summary><p>スープ、麺、初回来店向けの限定特典など、気になるポイントを確認できます。</p></details>
+        <details><summary>予約や来店情報はどこで見ますか？</summary><p>ページ内の「${escapeHtml(data.cta.label)}」から詳しい情報を確認できます。</p></details>
       </section>
 
       <section class="generated-cta-section">
-        <p>${escapeHtml(model.problemSummary)}を減らし、${escapeHtml(data.business)}を選ぶきっかけを作ります。</p>
+        <p>メニューや来店情報を確認して、気になる一杯を見つけてください。</p>
         ${ctaLink(data)}
         <small>${escapeHtml(data.business)}｜${escapeHtml(data.service)}｜${sampleLpLabel(data)}</small>
       </section>
@@ -874,7 +1025,7 @@ const auditGeneratedHtml = (html) => {
     [/file:\/\/\//i, "file:/// への依存が含まれています。"],
     [/{{|}}|\[\[|\]\]/, "未置換のテンプレート記号らしき文字が含まれています。"],
     [/AIza[0-9A-Za-z_-]+/, "APIキーらしき文字列が含まれています。"],
-    [/できますを|ありますを|ですへの|方が方へ|という悩みをという|できるためできます|安心して安心|分かりやすく分かる/, "不自然な接続表現らしき文字列が含まれています。"],
+    [/できますを|ありますを|ですへの|方が方へ|という悩みをという|できるためできます|安心して安心|分かりやすく分かる|分からずと|わからずと|と思っているが|と思っているを|ありがある|有りがある|可がある|ありがあるため|有りがあるため|が気になる方へ、|方へ、/, "不自然な接続表現らしき文字列が含まれています。"],
   ];
 
   checks.forEach(([pattern, message]) => {
@@ -919,6 +1070,12 @@ const auditGeneratedHtml = (html) => {
   if (doc.querySelector(".generated-lp.leadgen") && /応募|職場見学|働きたい/.test(visibleText)) {
     warnings.push("集客LP内に採用向けの行動語が含まれています。");
   }
+
+  doc.querySelectorAll(".generated-panel").forEach((panel) => {
+    if (/掲載内容は架空の(?:募集|来店)例です|実在する口コミや実績ではありません|実在する募集条件や実績ではありません/.test(panel.textContent)) {
+      warnings.push("漫画内にサンプル注記や免責説明が含まれています。");
+    }
+  });
 
   const dataUrlImageCount = (html.match(/src="data:image\//g) || []).length;
   if (dataUrlImageCount !== 4) warnings.push(`漫画画像のData URLが${dataUrlImageCount}個です。4個必要です。`);
