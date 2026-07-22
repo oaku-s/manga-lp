@@ -54,7 +54,7 @@ const sampleData = {
     tone: "明るく親しみやすい",
     color: "赤と黄色を基調に、ラーメン店らしい活気ある印象",
     ctaLabel: "応募フォームへ進む",
-    ctaUrl: "https://example.com/",
+    ctaUrl: "/sample-disabled",
   },
   leadgen: {
     isSample: true,
@@ -70,7 +70,7 @@ const sampleData = {
     tone: "食欲をそそる、親しみやすい",
     color: "赤、白、黒を基調に、湯気と活気が伝わる印象",
     ctaLabel: "来店・予約情報を見る",
-    ctaUrl: "https://example.com/",
+    ctaUrl: "/sample-disabled",
   },
 };
 
@@ -372,7 +372,7 @@ const buildStrengthLead = (lpType, strengths) => {
   const strengthText = joinItems(strengths.slice(0, 3));
   if (lpType === "recruiting") {
     if (/研修/.test(strengthText) && /シフト/.test(strengthText)) {
-      return "最初は簡単な仕事から。店長や先輩が一つずつ教えるので、初めての飲食バイトでも安心です。学校や予定に合わせてシフトも相談できます。";
+      return "最初は簡単な仕事から。仕事を覚えるための研修があるので、初めての飲食バイトでも安心です。学校や予定に合わせてシフトも相談できます。";
     }
     return `${strengthText}を確認できるため、初めてでも働き方をイメージしやすくなります。`;
   }
@@ -420,7 +420,7 @@ const buildRecruitingSecondDialogue = (model) =>
 const mentorLabel = (character) => {
   if (/先輩スタイリスト/.test(character)) return "先輩スタイリスト";
   if (/先輩/.test(character)) return "先輩スタッフ";
-  if (/店長/.test(character)) return "店長や先輩";
+  if (/店長/.test(character)) return "店長";
   if (/担当|講師|教育/.test(character)) return "担当者";
   return "先輩スタッフ";
 };
@@ -461,8 +461,8 @@ const isFoodBusiness = (data) =>
 const proofText = (data) => {
   if (isSampleLp(data) && isDeliveryMode(data)) {
     return data.lpType === "recruiting"
-      ? "仕事内容や職場の雰囲気を応募前に確認できるため、初めてでも判断しやすくなります"
-      : "来店前に商品や店の様子を知ることで、初めてでも足を運びやすくなります";
+      ? "仕事内容や働き方を応募前に確認できるため、初めてでも判断しやすくなります"
+      : "来店前に商品や来店情報を知ることで、初めてでも足を運びやすくなります";
   }
   return cleanSentence(data.achievement, "安心して判断できる材料があります");
 };
@@ -576,7 +576,7 @@ const buildMangaPanelData = (data, imageSources = []) => {
         },
         {
           title: "初日の姿が浮かぶ",
-          narration: `最初は案内や片付けなど簡単な仕事から。${mentorLabel(character)}がそばで教えてくれる働き方をイメージする。`,
+          narration: `最初は案内や片付けなど簡単な仕事から。${mentorLabel(character)}に教わりながら少しずつ覚えていく姿をイメージする。`,
           dialogue: "「これなら少しずつ覚えられそう」",
           emotion: "hope",
         },
@@ -692,8 +692,12 @@ const buildLpContent = (data, imageSources) => {
   return buildLeadgenLp(data, imageSources);
 };
 
+const isSampleCtaDisabled = (data) => isSampleLp(data) && isDeliveryMode(data);
+
 const ctaLink = (data, extraClass = "") =>
-  `<a class="generated-cta ${extraClass}" href="${escapeHtml(data.cta.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(data.cta.label)}</a>`;
+  isSampleCtaDisabled(data)
+    ? `<span class="generated-cta ${extraClass}" role="link" aria-disabled="true">${escapeHtml(data.cta.label)}</span>`
+    : `<a class="generated-cta ${extraClass}" href="${escapeHtml(data.cta.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(data.cta.label)}</a>`;
 
 const sectionTitle = (eyebrow, title, lead = "") => `
   <div class="generated-section-title">
@@ -747,6 +751,29 @@ const assetNotice = (data) => editorOnly(data, `
   </aside>
 `);
 
+const recruitingInfoCards = (data) => {
+  const source = `${data.strength} ${data.service}`;
+  const cards = [];
+  if (/案内|片付け|簡単/.test(source)) {
+    cards.push(["仕事内容について", "最初は簡単な案内や片付けから始められます。"]);
+  }
+  if (/研修/.test(source)) {
+    cards.push(["研修について", "仕事を覚えるための研修があります。"]);
+  }
+  if (/シフト/.test(source)) {
+    cards.push(["シフトについて", "学校や予定に合わせてシフトを相談できます。"]);
+  }
+  if (/まかない/.test(source)) {
+    cards.push(["まかないについて", "まかないがあります。"]);
+  }
+  return (cards.length ? cards : [["応募前に分かること", "仕事内容や働き方を応募前に確認できます。"]]).slice(0, 3);
+};
+
+const leadgenInfoItems = () => [
+  ["来店前に分かること", "スープ、麺、初回来店向けの限定特典など、来店前に気になるポイントを確認できます。"],
+  ["初めて来店する方へ", "味や雰囲気が分からず迷う方も、メニューや来店情報を確認できます。"],
+];
+
 const mangaPanels = (panels, data) => `
   <div class="generated-panels story-timeline" aria-label="${isDeliveryMode(data) ? "4コマストーリー" : "ヒアリング内容から生成した4コマ漫画"}">
     ${panels.map((panel, index) => `
@@ -788,14 +815,14 @@ const buildRecruitingLp = (data, imageSources) => {
       </header>
 
       <section class="generated-section generated-problem">
-        ${sectionTitle("WORRY", "求職者の不安", `${model.target}が応募前に感じやすい不安を整理しました。`)}
+        ${sectionTitle("WORRY", "応募前に、こんな不安はありませんか？")}
         <div class="worry-list">
           ${worryItems.map((item) => `<p>${escapeHtml(item)}</p>`).join("")}
         </div>
       </section>
 
       <section class="generated-manga">
-        ${sectionTitle("STORY", isDeliveryMode(data) ? "4コマ応募ストーリー" : "ヒアリングから生成した4コマ応募ストーリー", "応募を迷うところから、最初の一歩を決めるまでの流れです。")}
+        ${sectionTitle("STORY", isDeliveryMode(data) ? "4コマ応募ストーリー" : "ヒアリングから生成した4コマ応募ストーリー", isDeliveryMode(data) ? "" : "応募を迷うところから、最初の一歩を決めるまでの流れです。")}
         ${assetNotice(data)}
         ${mangaPanels(panels, data)}
       </section>
@@ -816,16 +843,14 @@ const buildRecruitingLp = (data, imageSources) => {
       <section class="generated-section generated-reasons">
         ${sectionTitle("PROOF", "働き方について", "応募前に確認しておきたいポイントです。")}
         <div class="reason-stack">
-          <article><h3>応募前に分かること</h3><p>${escapeHtml(model.proof)}</p></article>
-          <article><h3>相談しやすい職場</h3><p>${escapeHtml(tonePhrase(data.tone))}の中で、応募前の不安を相談しやすくします。</p></article>
-          <article><h3>お店らしい活気</h3><p>${escapeHtml(colorPhrase(data.color))}</p></article>
+          ${recruitingInfoCards(data).map(([title, text]) => `<article><h3>${escapeHtml(title)}</h3><p>${escapeHtml(text)}</p></article>`).join("")}
         </div>
       </section>
 
       <section class="generated-section generated-faq">
         ${sectionTitle("FAQ", "応募前によくある質問")}
-        <details open><summary>未経験でも応募できますか？</summary><p>${escapeHtml(model.firstStrength)}を確認できるため、初めてでも仕事を覚える流れをイメージしやすくなります。</p></details>
-        <details><summary>働き方は相談できますか？</summary><p>応募前に不安がある方も、${escapeHtml(model.strengthSummary)}を確認できます。</p></details>
+        <details open><summary>未経験者向けの研修はありますか？</summary><p>はい。仕事を覚えるための研修があります。</p></details>
+        <details><summary>シフトは相談できますか？</summary><p>はい。学校や予定に合わせてシフトを相談できます。</p></details>
       </section>
 
       <section class="generated-cta-section">
@@ -848,7 +873,7 @@ const buildLeadgenLp = (data, imageSources) => {
       ${sampleOnly(data, `<div class="sample-ribbon">${sampleRibbonText(data)}</div>`)}
       <header class="generated-hero">
         <div class="generated-hero-inner">
-          <span class="generated-badge">${escapeHtml(data.service)} 集客</span>
+          <span class="generated-badge">初めてご来店の方へ</span>
           <p class="generated-kicker">VISIT / ${escapeHtml(data.business)}</p>
           <h1>初めての方にも知ってほしい。<br>スープと自家製麺にこだわった一杯</h1>
           <p class="generated-sub">味や雰囲気を確かめてから選びたい方へ。${escapeHtml(model.strengthLead)}</p>
@@ -857,14 +882,14 @@ const buildLeadgenLp = (data, imageSources) => {
       </header>
 
       <section class="generated-section generated-problem">
-        ${sectionTitle("WORRY", "顧客の悩み", `${model.target}が選ぶ前に感じやすい迷いを整理しました。`)}
+        ${sectionTitle("WORRY", "こんな迷いはありませんか？")}
         <div class="worry-list">
           ${worryItems.map((item) => `<p>${escapeHtml(item)}</p>`).join("")}
         </div>
       </section>
 
       <section class="generated-manga">
-        ${sectionTitle("STORY", isDeliveryMode(data) ? "4コマ来店ストーリー" : "ヒアリングから生成した4コマ来店ストーリー", `${data.character}を通じて、迷いが期待へ変わっていく流れを描きます。`)}
+        ${sectionTitle("STORY", isDeliveryMode(data) ? "4コマ来店ストーリー" : "ヒアリングから生成した4コマ来店ストーリー", isDeliveryMode(data) ? "" : `${data.character}を通じて、来店前の迷いが期待へ変わる場面をまとめます。`)}
         ${assetNotice(data)}
         ${mangaPanels(panels, data)}
       </section>
@@ -885,15 +910,14 @@ const buildLeadgenLp = (data, imageSources) => {
       <section class="generated-section generated-voices">
         ${sectionTitle("PROOF", "初めて来店する方へ", "来店前に知っておきたいポイントです。")}
         <div class="voice-list">
-          <blockquote><b>来店前に分かること</b><p>${escapeHtml(model.proof)}</p></blockquote>
-          <blockquote><b>店内の空気感</b><p>${escapeHtml(tonePhrase(data.tone))}と${escapeHtml(colorPhrase(data.color))}で、食べに行く前の期待がふくらみます。</p></blockquote>
+          ${leadgenInfoItems().map(([title, text]) => `<blockquote><b>${escapeHtml(title)}</b><p>${escapeHtml(text)}</p></blockquote>`).join("")}
         </div>
       </section>
 
       <section class="generated-section generated-faq">
         ${sectionTitle("FAQ", "来店前によくある質問")}
         <details open><summary>来店前に何が分かりますか？</summary><p>スープ、麺、初回来店向けの限定特典など、気になるポイントを確認できます。</p></details>
-        <details><summary>予約や来店情報はどこで見ますか？</summary><p>ページ内の「${escapeHtml(data.cta.label)}」から詳しい情報を確認できます。</p></details>
+        <details><summary>来店情報はどこで見ますか？</summary><p>ページ内の「${escapeHtml(data.cta.label)}」で確認できます。</p></details>
       </section>
 
       <section class="generated-cta-section">
@@ -1025,6 +1049,7 @@ const auditGeneratedHtml = (html) => {
     [/file:\/\/\//i, "file:/// への依存が含まれています。"],
     [/{{|}}|\[\[|\]\]/, "未置換のテンプレート記号らしき文字が含まれています。"],
     [/AIza[0-9A-Za-z_-]+/, "APIキーらしき文字列が含まれています。"],
+    [/example\.com/i, "サンプル用のexample.comリンクが含まれています。"],
     [/できますを|ありますを|ですへの|方が方へ|という悩みをという|できるためできます|安心して安心|分かりやすく分かる|分からずと|わからずと|と思っているが|と思っているを|ありがある|有りがある|可がある|ありがあるため|有りがあるため|が気になる方へ、|方へ、/, "不自然な接続表現らしき文字列が含まれています。"],
   ];
 
@@ -1036,7 +1061,7 @@ const auditGeneratedHtml = (html) => {
   const lpRoot = doc.querySelector(".generated-lp");
   const visibleText = lpRoot?.textContent || doc.body.textContent || "";
   const isDeliveryHtml = lpRoot?.getAttribute("data-output-mode") !== "editor";
-  if (isDeliveryHtml && /ヒアリング|生成|漫画LP|画像プロンプト|仮素材|本番制作時|制作担当者向けメモ/.test(visibleText)) {
+  if (isDeliveryHtml && /ヒアリング|生成|漫画LP|画像プロンプト|仮素材|本番制作時|制作担当者向けメモ|集客|顧客の悩み|求職者の不安|整理しました|流れを描きます|基調に|活気ある見た目/.test(visibleText)) {
     warnings.push("納品HTMLに制作側の文言が含まれています。");
   }
 
@@ -1046,7 +1071,9 @@ const auditGeneratedHtml = (html) => {
 
   doc.querySelectorAll(".generated-cta").forEach((cta) => {
     if (!cta.textContent.trim()) warnings.push("空のCTAがあります。");
-    if (!cta.getAttribute("href")) warnings.push("hrefのないCTAがあります。");
+    if (cta.getAttribute("aria-disabled") !== "true" && !cta.getAttribute("href")) {
+      warnings.push("hrefのないCTAがあります。");
+    }
   });
 
   const ctaCount = doc.querySelectorAll(".generated-cta").length;
