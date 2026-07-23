@@ -105,7 +105,7 @@ a {
   gap: 32px;
   min-height: calc(100svh - 65px);
   align-items: center;
-  padding-top: 54px;
+  padding-top: 42px;
 }
 
 .eyebrow,
@@ -138,6 +138,15 @@ h1 {
   font-size: clamp(2.32rem, 14vw, 5.4rem);
 }
 
+.hero h1 {
+  max-width: none;
+  font-size: clamp(2rem, 9.3vw, 4.6rem);
+}
+
+.hero-title-line {
+  display: block;
+}
+
 h2 {
   font-size: clamp(1.72rem, 8vw, 3.15rem);
 }
@@ -161,6 +170,7 @@ h3 {
 }
 
 .hero-actions,
+.hero-offer,
 .final-cta {
   display: flex;
   flex-direction: column;
@@ -169,7 +179,29 @@ h3 {
 }
 
 .hero-actions {
-  margin-top: 28px;
+  margin-top: 12px;
+}
+
+.hero-offer {
+  margin-top: 24px;
+}
+
+.hero-price {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.hero-price span {
+  color: var(--subtle);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.hero-price strong {
+  color: var(--accent);
+  font-size: clamp(1.35rem, 6vw, 2rem);
+  line-height: 1.2;
 }
 
 .button {
@@ -234,7 +266,7 @@ h3 {
 .hero-panel dl {
   display: grid;
   gap: 10px;
-  margin: 24px 0 0;
+  margin: 0;
 }
 
 .hero-panel dl div {
@@ -243,6 +275,11 @@ h3 {
   gap: 14px;
   border-top: 1px solid var(--line);
   padding-top: 12px;
+}
+
+.hero-panel dl div:first-child {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .hero-panel dt {
@@ -472,6 +509,11 @@ h3 {
     flex-direction: row;
   }
 
+  .hero-offer {
+    flex-direction: row;
+    align-items: center;
+  }
+
   .problem-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -483,8 +525,16 @@ h3 {
   }
 
   .hero {
-    grid-template-columns: minmax(0, 1.16fr) minmax(300px, 0.84fr);
-    gap: 56px;
+    grid-template-columns: minmax(0, 1.34fr) minmax(300px, 0.66fr);
+    gap: 44px;
+    padding-top: 32px;
+    padding-bottom: 56px;
+  }
+
+  .hero-title-line {
+    overflow-wrap: normal;
+    white-space: nowrap;
+    word-break: keep-all;
   }
 
   .hero-panel {
