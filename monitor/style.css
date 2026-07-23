@@ -582,6 +582,36 @@ h3 {
   margin: 0;
 }
 
+.operator-list dd p {
+  margin: 0;
+}
+
+.operator-list dd p + p,
+.operator-list dd ul + p,
+.operator-list dd p + ul {
+  margin-top: 10px;
+}
+
+.operator-list dd ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.legal-disclosure div {
+  align-items: start;
+}
+
+.legal-note {
+  margin-top: 44px;
+}
+
+.legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  margin-top: 32px;
+}
+
 .back-link {
   margin: 34px 0 0;
 }
