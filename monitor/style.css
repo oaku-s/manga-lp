@@ -302,6 +302,16 @@ h3 {
   margin: 16px 0 0;
 }
 
+.about-body {
+  max-width: 760px;
+}
+
+.about-body p {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
 .problem-grid,
 .sample-grid {
   display: grid;
