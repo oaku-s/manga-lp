@@ -1,0 +1,663 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>炭火焼鳥 とり喜 | 一人でも気まずくない、カウンター8席の焼鳥店｜制作サンプル</title>
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    background-color: #111009;
+    color: #e8dfc8;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "游明朝", Georgia, serif;
+    line-height: 1.9;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* ── 写真枠 ── */
+  .photo-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 4 / 3;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    background-color: #2a1e0e;
+    color: #c87a30;
+    border: 1px solid #4a2e0a;
+  }
+
+  /* ── 共通 ── */
+  .section {
+    padding: 56px 24px;
+    border-bottom: 1px solid #2a1e0e;
+  }
+
+  .section:last-of-type {
+    border-bottom: none;
+  }
+
+  .section-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    color: #c87a30;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  h2 {
+    font-size: 1.35rem;
+    font-weight: normal;
+    line-height: 1.65;
+    letter-spacing: 0.06em;
+    color: #f0e4c4;
+    margin-bottom: 28px;
+  }
+
+  p {
+    font-size: 0.92rem;
+    line-height: 2.0;
+    color: #c8b898;
+    margin-bottom: 18px;
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+
+  em {
+    font-style: normal;
+    color: #e8a040;
+  }
+
+  /* 炭火をイメージした区切り */
+  .ember-rule {
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, #c87a30, #e8a040, #c87a30);
+    margin: 0 0 28px 0;
+    border: none;
+  }
+
+  /* ── 1. ファーストビュー ── */
+  #hero {
+    background-color: #0d0b07;
+    padding: 0;
+    border-bottom: 1px solid #2a1e0e;
+    position: relative;
+  }
+
+  #hero .hero-photo {
+    position: relative;
+  }
+
+  #hero .hero-photo .photo-slot {
+    aspect-ratio: 3 / 4;
+    border: none;
+    background-color: #1a1208;
+  }
+
+  #hero .hero-overlay {
+    padding: 40px 24px 48px;
+  }
+
+  .hero-store-name {
+    font-size: 0.7rem;
+    letter-spacing: 0.28em;
+    color: #c87a30;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .hero-catch {
+    font-size: 1.65rem;
+    font-weight: normal;
+    line-height: 1.55;
+    letter-spacing: 0.05em;
+    color: #f5ead0;
+    margin-bottom: 20px;
+  }
+
+  .hero-catch span {
+    display: block;
+  }
+
+  .hero-sub {
+    font-size: 0.85rem;
+    line-height: 1.95;
+    color: #a09070;
+    border-left: 2px solid #c87a30;
+    padding-left: 14px;
+    margin-top: 24px;
+  }
+
+  /* ── 2. 共感 ── */
+  #empathy {
+    background-color: #0f0c08;
+  }
+
+  .empathy-list {
+    list-style: none;
+    margin: 0 0 28px 0;
+    padding: 0;
+  }
+
+  .empathy-list li {
+    font-size: 0.9rem;
+    color: #b0a080;
+    line-height: 1.85;
+    padding: 12px 0;
+    border-bottom: 1px solid #221a0c;
+    padding-left: 20px;
+    position: relative;
+  }
+
+  .empathy-list li::before {
+    content: "──";
+    position: absolute;
+    left: 0;
+    color: #4a3010;
+    font-size: 0.65rem;
+    top: 16px;
+  }
+
+  .empathy-list li:last-child {
+    border-bottom: none;
+  }
+
+  .empathy-answer {
+    font-size: 1.05rem;
+    font-weight: normal;
+    line-height: 1.8;
+    color: #f0e4c4;
+    padding: 24px 0 0 0;
+  }
+
+  /* ── 3. 店主・About ── */
+  #about {
+    background-color: #111009;
+  }
+
+  .owner-profile {
+    margin-top: 28px;
+    padding: 20px;
+    background-color: #1a1208;
+    border-left: 2px solid #c87a30;
+  }
+
+  .owner-profile p {
+    font-size: 0.82rem;
+    color: #907858;
+    margin-bottom: 0;
+  }
+
+  /* ── 4. こだわり ── */
+  #craft {
+    background-color: #0d0b07;
+  }
+
+  .craft-step {
+    margin-bottom: 32px;
+  }
+
+  .craft-step-num {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: #c87a30;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .craft-step-title {
+    font-size: 1.0rem;
+    color: #f0e4c4;
+    line-height: 1.6;
+    margin-bottom: 10px;
+    font-weight: normal;
+  }
+
+  .craft-step-desc {
+    font-size: 0.88rem;
+    color: #a09070;
+    line-height: 2.0;
+  }
+
+  /* ── 5. 名物・おすすめ ── */
+  #menu {
+    background-color: #111009;
+  }
+
+  .menu-feature {
+    margin: 28px 0;
+    padding: 28px 20px;
+    background-color: #1c1208;
+    border: 1px solid #3a2408;
+    position: relative;
+  }
+
+  .menu-feature::before {
+    content: "名物";
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    background-color: #c87a30;
+    color: #0d0b07;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    padding: 2px 10px;
+  }
+
+  .menu-name {
+    font-size: 1.5rem;
+    color: #f5ead0;
+    letter-spacing: 0.12em;
+    margin-bottom: 12px;
+    font-weight: normal;
+  }
+
+  .menu-desc {
+    font-size: 0.88rem;
+    color: #a09070;
+    line-height: 2.0;
+    margin-bottom: 0;
+  }
+
+  .menu-quote {
+    font-size: 0.92rem;
+    color: #e8a040;
+    font-style: italic;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #2a1e0e;
+  }
+
+  /* ── 6. お客様の声 ── */
+  #voice {
+    background-color: #0d0b07;
+  }
+
+  .voice-item {
+    padding: 24px 0;
+    border-bottom: 1px solid #1e1608;
+  }
+
+  .voice-item:last-of-type {
+    border-bottom: none;
+  }
+
+  .voice-quote {
+    font-size: 0.95rem;
+    color: #f0e4c4;
+    line-height: 1.9;
+    margin-bottom: 10px;
+    padding-left: 16px;
+    border-left: 2px solid #c87a30;
+  }
+
+  .voice-attr {
+    font-size: 0.72rem;
+    color: #706050;
+    letter-spacing: 0.1em;
+    padding-left: 16px;
+  }
+
+  .voice-story {
+    margin-top: 36px;
+    padding: 24px 20px;
+    background-color: #1a1208;
+    border-top: 1px solid #4a2e0a;
+    border-bottom: 1px solid #4a2e0a;
+  }
+
+  .voice-story-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: #c87a30;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .voice-story p {
+    font-size: 0.88rem;
+    color: #a09070;
+    line-height: 2.1;
+  }
+
+  /* ── 7. CTA ── */
+  #cta {
+    background-color: #111009;
+    text-align: center;
+    padding: 64px 24px;
+  }
+
+  #cta .cta-catch {
+    font-size: 1.1rem;
+    color: #f0e4c4;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    font-weight: normal;
+  }
+
+  #cta .cta-sub {
+    font-size: 0.78rem;
+    color: #706050;
+    margin-bottom: 36px;
+    line-height: 1.9;
+  }
+
+  .cta-btn {
+    display: block;
+    width: 100%;
+    padding: 18px 0;
+    background-color: #c87a30;
+    color: #0d0b07;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "游明朝", Georgia, serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.18em;
+    text-decoration: none;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .cta-btn:hover {
+    background-color: #e8a040;
+  }
+
+  /* サンプルのため無効化したボタン */
+  .cta-btn[aria-disabled="true"],
+  .cta-btn[aria-disabled="true"]:hover {
+    background-color: #c87a30;
+    cursor: default;
+  }
+
+  .cta-note {
+    font-size: 0.72rem;
+    color: #504030;
+    margin-top: 16px;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── 店舗情報 ── */
+  #info {
+    background-color: #111009;
+  }
+
+  .info-list div {
+    display: flex;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #221a0c;
+  }
+
+  .info-list div:last-child {
+    border-bottom: none;
+  }
+
+  .info-list dt {
+    flex: 0 0 5.5em;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    color: #c87a30;
+    line-height: 1.9;
+  }
+
+  .info-list dd {
+    font-size: 0.88rem;
+    color: #a09070;
+    line-height: 1.9;
+  }
+
+  /* ── 8. フッター ── */
+  footer {
+    background-color: #0a0806;
+    padding: 32px 24px;
+    text-align: center;
+    border-top: 1px solid #1e1608;
+  }
+
+  .footer-name {
+    font-size: 0.85rem;
+    color: #c87a30;
+    letter-spacing: 0.22em;
+    margin-bottom: 8px;
+  }
+
+  .footer-copy {
+    font-size: 0.65rem;
+    color: #403020;
+    letter-spacing: 0.1em;
+  }
+
+  .footer-note {
+    font-size: 0.7rem;
+    color: #706050;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━
+  1. ファーストビュー
+━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section id="hero">
+  <div class="hero-photo">
+    <!-- 写真差し替え位置：店の外観または夜の暖簾 -->
+    <div class="photo-slot" data-slot="hero"><span>店の外観・暖簾</span></div>
+  </div>
+  <div class="hero-overlay">
+    <span class="hero-store-name">炭火焼鳥　とり喜</span>
+    <h1 class="hero-catch">
+      <span>ひとりで入れる、</span>
+      <span>ひとりのペースで飲める。</span>
+    </h1>
+    <p class="hero-sub">
+      カウンター8席。備長炭の焼鳥と、静かな夜。<br>
+      仕事帰りのあなたに向けた一軒です。
+    </p>
+  </div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━
+  2. 共感
+━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section id="empathy" class="section">
+  <span class="section-label">こんな夜、ありませんか</span>
+  <hr class="ember-rule">
+  <ul class="empathy-list">
+    <li>チェーン店は混んでいて、騒がしくて、落ち着けない</li>
+    <li>一人だとカウンターに座るだけで気を使う</li>
+    <li>「ここなら一人でも大丈夫」という店が、なかなか見つからない</li>
+  </ul>
+  <p class="empathy-answer">
+    仕事帰りに静かに飲みたいだけなのに、<br>
+    それが意外と難しい。<br><br>
+    <em>とり喜は、そういう夜のための店です。</em>
+  </p>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━
+  3. 店主・About
+━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section id="about" class="section">
+  <span class="section-label">About</span>
+  <hr class="ember-rule">
+  <h2>顔を覚えていたいから、<br>カウンター8席にした。</h2>
+
+  <!-- 写真差し替え位置：店主（白い作業着・手ぬぐい）の写真 -->
+  <div class="photo-slot" data-slot="owner"><span>店主の写真</span></div>
+
+  <p style="margin-top: 28px;">
+    都内の老舗で修業を積んだあと、この街に店を構えました。
+  </p>
+  <p>
+    席数を絞ったのは、効率のためではありません。<em>お客さんの顔を、ちゃんと覚えていたかったから。</em>お客さんが今日どんな状態で来たか、どのくらいのペースで飲みたそうかを、カウンター越しに見ていたいから。
+  </p>
+  <p>
+    多くは語りません。でも、手だけは止めません。
+  </p>
+  <div class="owner-profile">
+    <p>店主　／　40代・男性<br>白い作業着と手ぬぐい。寡黙だが、面倒見がいい。</p>
+  </div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━
+  4. こだわり
+━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section id="craft" class="section">
+  <span class="section-label">こだわり</span>
+  <hr class="ember-rule">
+  <h2>手間を省けば、<br>必ずどこかに出る。</h2>
+
+  <div class="craft-step">
+    <span class="craft-step-num">01 ── 仕入れ</span>
+    <p class="craft-step-title">契約農家から、朝引きの地鶏だけを毎日仕入れる。</p>
+    <p class="craft-step-desc">
+      鮮度が違えば、焼いたときの香りも食感もまるで変わります。だから産地と農家を固定して、毎日届く分だけを使います。冷凍はしません。
+    </p>
+  </div>
+
+  <div class="craft-step">
+    <span class="craft-step-num">02 ── 炭</span>
+    <p class="craft-step-title">備長炭で、一本ずつ焼き加減を見ながら焼く。</p>
+    <p class="craft-step-desc">
+      ガスや電気のグリルなら温度管理を機械に任せられます。備長炭はそうはいきません。炭の状態、その日の湿度、串の太さ。全部が違う。だから一本ずつ、目で見て、手で調整しながら焼きます。
+    </p>
+  </div>
+
+  <!-- 写真差し替え位置：備長炭で焼く串の写真 -->
+  <div class="photo-slot" data-slot="craft"><span>備長炭で焼く串</span></div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━
+  5. 名物・おすすめ
+━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section id="menu" class="section">
+  <span class="section-label">名物</span>
+  <hr class="ember-rule">
+  <h2>常連さんが必ず頼む、<br>一本があります。</h2>
+
+  <!-- 写真差し替え位置：つくねと卵黄の写真 -->
+  <div class="photo-slot" data-slot="menu"><span>つくねと卵黄</span></div>
+
+  <div class="menu-feature">
+    <p class="menu-name">つくね</p>
+    <p class="menu-desc">
+      地鶏のうま味を引き出したつくねを、備長炭でじっくり焼き上げます。
+    </p>
+    <p class="menu-quote">
+      「黄身にくぐらせて食べる」<br>
+      ── 常連さんの定番の食べ方
+    </p>
+  </div>
+
+  <p>
+    黄身のまろやかさが炭の香りに合わさる。それだけのことなのに、やめられないと言われます。最初に頼んで、最後にまた頼む人も少なくありません。
+  </p>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━
+  6. お客様の声
+━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section id="voice" class="section">
+  <span class="section-label">お客様の声</span>
+  <hr class="ember-rule">
+  <h2>実際に、こう言われます。</h2>
+
+  <div class="voice-item">
+    <p class="voice-quote">「ひとりでも気まずくない」</p>
+    <p class="voice-attr">常連のお客様より</p>
+  </div>
+
+  <div class="voice-item">
+    <p class="voice-quote">「大将がこっちのペースを分かってくれてる」</p>
+    <p class="voice-attr">常連のお客様より</p>
+  </div>
+
+  <div class="voice-story">
+    <span class="voice-story-label">印象に残っているやりとり</span>
+    <p>
+      「ひとり飲みデビューがこの店だった」と話してくれたお客さんがいます。最初は緊張した様子で来られたそうですが、今は週一で通ってくれています。
+    </p>
+    <p style="margin-top: 14px;">
+      特別なことはしていません。ペースを急かさず、話しかけすぎず、ただ焼いていた。それだけだと思っています。
+    </p>
+  </div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━
+  店舗情報
+━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section id="info" class="section">
+  <span class="section-label">店舗情報</span>
+  <hr class="ember-rule">
+  <h2>カウンター8席の、<br>小さな店です。</h2>
+
+  <dl class="info-list">
+    <div>
+      <dt>店名</dt>
+      <dd>炭火焼鳥　とり喜</dd>
+    </div>
+    <div>
+      <dt>住所</dt>
+      <dd>◯◯県◯◯市◯◯町◯-◯-◯</dd>
+    </div>
+    <div>
+      <dt>アクセス</dt>
+      <dd>◯◯線 ◯◯駅から徒歩◯分</dd>
+    </div>
+    <div>
+      <dt>営業時間</dt>
+      <dd>◯◯:◯◯〜◯◯:◯◯</dd>
+    </div>
+    <div>
+      <dt>定休日</dt>
+      <dd>◯曜日</dd>
+    </div>
+    <div>
+      <dt>席数</dt>
+      <dd>カウンター8席</dd>
+    </div>
+    <div>
+      <dt>電話番号</dt>
+      <dd>◯◯◯-◯◯◯-◯◯◯◯</dd>
+    </div>
+  </dl>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━
+  7. CTA
+━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section id="cta">
+  <p class="cta-catch">今夜、一人でどうぞ。</p>
+  <p class="cta-sub">カウンター8席のため、<br>ご予約をおすすめしています。</p>
+  <span class="cta-btn" role="button" aria-disabled="true">今すぐ予約・相談する</span>
+  <p class="cta-note">お電話・メッセージ、どちらでもお気軽に。</p>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━
+  8. フッター
+━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<footer>
+  <p class="footer-name">炭火焼鳥　とり喜（架空店舗）</p>
+  <p class="footer-note">制作サンプル｜実在の店舗ではありません</p>
+  <p class="footer-note">掲載の店舗情報・お客様の声はすべて架空のものです。ボタンは動作しません。</p>
+  <p class="footer-copy">&copy; 炭火焼鳥 とり喜 All rights reserved.</p>
+</footer>
+
+</body>
+</html>
