@@ -36,6 +36,9 @@ function collectFormData() {
     strengths: getValue("strengths"),
     problemsSolved: getValue("problemsSolved"),
     results: getValue("results"),
+    regulars: getValue("regulars"),
+    episode: getValue("episode"),
+    origin: getValue("origin"),
     characterGender: getValue("characterGender"),
     characterRole: getValue("characterRole"),
     characterPersonality: getValue("characterPersonality"),
@@ -49,6 +52,36 @@ function collectFormData() {
 function buildCharacterDesc(data) {
   return `${data.characterGender}・${data.characterRole}・${data.characterPersonality}・${data.characterAppearance}`;
 }
+
+// その店でしか答えられない情報。各プロンプトで共通のブロックとして使う
+// 答えが出ない項目は空欄のまま送られてくるため、値がある行だけを組み立てる
+function buildStoreInfoBlock(data) {
+  return [
+    ["一番手間・時間をかけていること", data.strengths],
+    ["お客さんによく言われること", data.results],
+    ["常連さんの定番・口ぐせ", data.regulars],
+    ["印象に残っているやりとり", data.episode],
+    ["始めたきっかけ・続けている理由", data.origin],
+  ]
+    .filter(([, value]) => value)
+    .map(([label, value]) => `【${label}】${value}`)
+    .join("\n");
+}
+
+// 値が空なら、その値を含む一文ごと出さない（汎用的な代替文は入れない）
+function optionalLine(value, text) {
+  return value ? [text] : [];
+}
+
+function joinSentences(parts) {
+  return parts.filter(Boolean).join("");
+}
+
+const SPECIFICITY_RULES = `## 具体性のルール（最優先・厳守）
+- 入力されたエピソードや実際に言われた言葉は、要約・抽象化せず、可能な限りそのまま本文やセリフに使う
+- 「こだわりの逸品」「最高のおもてなし」「アットホームな職場」のような、どの店にも当てはまる表現に言い換えない
+- 固有名詞・具体的な数量・時間・実際に言われた言葉を優先して使う
+- 入力にない実績数値やエピソードを創作しない`;
 
 // MarkdownをHTMLに変換
 function markdownToHtml(text) {
@@ -129,15 +162,18 @@ function buildStory(data) {
       "転職・就職への不安やストレスを感じている様子を描写する。",
       "",
       "【2コマ目：出会い（職場との出会い）】",
-      `${data.businessName}を知るきっかけが生まれ、${data.strengths}に惹かれる。`,
+      `${data.businessName}を知るきっかけが生まれる。`,
+      ...optionalLine(data.strengths, `${data.strengths}という仕事の細かさに惹かれる。`),
       "まだ少し不安はあるが、ここで働いてみたくなる流れにする。",
       "",
       "【3コマ目：体験（職場の雰囲気）】",
       `${char}の案内で職場を体験し、不安が解消されていく。`,
-      `${data.results}などの実績が安心材料として伝わる。`,
+      ...optionalLine(data.results, `お客さんから「${data.results}」と言われる現場であることが伝わる。`),
+      ...optionalLine(data.episode, `${data.episode}のような場面は、言い換えずそのまま使う。`),
       "",
       "【4コマ目：未来（理想の働き方）】",
       `${data.problemsSolved}が解決され、生き生きと働く姿を描く。`,
+      ...optionalLine(data.origin, `${data.origin}という店の背景が、最後のひと言に滲むようにする。`),
       `${data.businessName}へ応募・問い合わせしたくなる締めにする。`,
     ].join("\n");
   }
@@ -148,15 +184,18 @@ function buildStory(data) {
     "日常の中で不便やストレスを感じている様子を描写する。",
     "",
     "【2コマ目：出会い（解決のきっかけ）】",
-    `${data.businessName}を知るきっかけが生まれ、${data.strengths}に惹かれる。`,
+    `${data.businessName}を知るきっかけが生まれる。`,
+    ...optionalLine(data.strengths, `${data.strengths}という手のかけ方に惹かれる。`),
     "まだ少し不安はあるが、試してみたくなる流れにする。",
     "",
     "【3コマ目：体験（変化の実感）】",
     `${char}の案内でサービスを体験し、悩みが軽くなる。`,
-    `${data.results}などの実績が安心材料として伝わる。`,
+    ...optionalLine(data.results, `お客さんから「${data.results}」と言われる場面として描く。`),
+    ...optionalLine(data.episode, `${data.episode}のような場面は、言い換えずそのまま使う。`),
     "",
     "【4コマ目：未来（理想の状態）】",
     `${data.problemsSolved}が改善され、前向きな日常を取り戻した姿を描く。`,
+    ...optionalLine(data.regulars, `常連の${data.regulars}という定番が、通い続ける姿として滲むようにする。`),
     `${data.businessName}へ問い合わせ・予約したくなる締めにする。`,
   ].join("\n");
 }
@@ -168,34 +207,50 @@ function buildPanelPrompts(data) {
   if (data.lpType === "採用") {
     return [
       `【1コマ目】${common}。ターゲットは${data.target}。転職・就職に悩む日常シーン。`,
-      `【2コマ目】${common}。${data.businessName}との出会いの場面。${data.strengths}が自然に伝わる演出。`,
-      `【3コマ目】${common}。職場体験シーン。${data.problemsSolved}が解消へ向かう様子。${data.results}を反映。`,
+      joinSentences([
+        `【2コマ目】${common}。${data.businessName}との出会いの場面。`,
+        data.strengths && `${data.strengths}という手間のかけ方が画面に写り込む演出。`,
+      ]),
+      joinSentences([
+        `【3コマ目】${common}。職場体験シーン。${data.problemsSolved}が解消へ向かう様子。`,
+        data.episode && `${data.episode}の場面をそのまま絵にする。`,
+      ]),
       `【4コマ目】${common}。生き生きと働く未来。${data.businessName}に応募したくなる前向きな締め。`,
     ];
   }
 
   return [
     `【1コマ目】${common}。ターゲットは${data.target}。悩みで困っている日常シーン。`,
-    `【2コマ目】${common}。${data.businessName}との出会いの場面。${data.strengths}が自然に伝わる演出。`,
-    `【3コマ目】${common}。サービス体験シーン。${data.problemsSolved}が改善へ向かう手応えを描写。${data.results}を反映。`,
+    joinSentences([
+      `【2コマ目】${common}。${data.businessName}との出会いの場面。`,
+      data.strengths && `${data.strengths}という手間のかけ方が画面に写り込む演出。`,
+    ]),
+    joinSentences([
+      `【3コマ目】${common}。サービス体験シーン。${data.problemsSolved}が改善へ向かう手応えを描写。`,
+      data.episode && `${data.episode}の場面をそのまま絵にする。`,
+    ]),
     `【4コマ目】${common}。悩み解消後の明るい未来。${data.businessName}に相談したくなる締め。`,
   ];
 }
 
 function buildCatchCopies(data) {
-  if (data.lpType === "採用") {
-    return [
-      `1. 「${data.problemsSolved}に悩む${data.target}へ。${data.businessName}で理想の働き方を。」`,
-      `2. 「${data.strengths}が整った${data.businessName}。${data.results}が安心の証。」`,
-      `3. 「もう妥協しない。${data.problemsSolved}に悩むあなたに、${data.businessName}という選択肢を。」`,
-    ].join("\n");
-  }
+  const copies = data.lpType === "採用"
+    ? [
+        `${data.problemsSolved}に悩む${data.target}へ。${data.businessName}で理想の働き方を。`,
+        data.strengths && `${data.strengths}。それを毎日やっている${data.businessName}です。`,
+        data.origin && `${data.origin}。だから${data.businessName}は、この働き方を変えません。`,
+      ]
+    : [
+        `${data.problemsSolved}に悩む${data.target}へ。${data.businessName}が毎日を変える。`,
+        data.strengths && `${data.strengths}。${data.businessName}がそこに時間をかける理由。`,
+        data.results && `お客さんに言われるのは、いつも『${data.results}』。${data.businessName}。`,
+      ];
 
-  return [
-    `1. 「${data.problemsSolved}に悩む${data.target}へ。${data.businessName}が毎日を変える。」`,
-    `2. 「${data.strengths}で選ばれる${data.businessName}。${data.results}が安心の理由。」`,
-    `3. 「もう我慢しない。${data.problemsSolved}に、${data.businessName}という答えを。」`,
-  ].join("\n");
+  // 空欄の項目を使う案は落とし、残った案だけを振り直して番号を詰める
+  return copies
+    .filter(Boolean)
+    .map((copy, index) => `${index + 1}. 「${copy}」`)
+    .join("\n");
 }
 
 function buildClaudePrompt(data, hasImage) {
@@ -208,12 +263,13 @@ function buildClaudePrompt(data, hasImage) {
 
 【店名・業種】${data.businessName}
 【ターゲット求職者】${data.target}
-【職場の強み・特徴】${data.strengths}
 【解決できる悩み（求職者の）】${data.problemsSolved}
-【実績・数字】${data.results}
+${buildStoreInfoBlock(data)}
 【キャラクター】${char}
 【トーン】${data.tone}
 【カラーイメージ】${data.colorImage}
+
+${SPECIFICITY_RULES}
 
 以下を出力してください：
 
@@ -232,12 +288,13 @@ function buildClaudePrompt(data, hasImage) {
 
 【店名・業種】${data.businessName}
 【ターゲット】${data.target}
-【強み・特徴】${data.strengths}
 【解決できる悩み】${data.problemsSolved}
-【実績・数字】${data.results}
+${buildStoreInfoBlock(data)}
 【キャラクター】${char}
 【トーン】${data.tone}
 【カラーイメージ】${data.colorImage}
+
+${SPECIFICITY_RULES}
 
 以下を出力してください：
 
@@ -361,12 +418,13 @@ function buildLpPrompt(data) {
 【LP種別】${data.lpType}LP
 【店名・業種】${data.businessName}
 【ターゲット】${data.target}
-【強み】${data.strengths}
 【解決できる悩み】${data.problemsSolved}
-【実績・数字】${data.results}
+${buildStoreInfoBlock(data)}
 【キャラクター】${char}
 【トーン】${data.tone}
 【カラーイメージ】${data.colorImage}
+
+${SPECIFICITY_RULES}
 
 ## 出力ルール（必ず守ること）
 - DOCTYPE〜</body></html>まで完全に出力する（末尾まで省略しない）
@@ -379,7 +437,7 @@ function buildLpPrompt(data) {
 2. キャラクター紹介：${char}の一言紹介
 3. 縦4コマ漫画（1セットのみ）
 4. ${reasonHead}：アイコン絵文字＋理由テキスト×3
-5. ${voiceLabel}：1〜2件のダミー体験談
+5. ${voiceLabel}：【お客さんによく言われること】【印象に残っているやりとり】に書かれた言葉を使う（体験談を創作しない）
 6. CTA：「${ctaLabel}」ボタン
 7. フッター：店名・コピーライト
 
@@ -822,12 +880,13 @@ function buildMangaJsonPrompt(data) {
 \u3010LP\u7A2E\u5225\u3011${data.lpType}LP
 \u3010\u5E97\u540D\u30FB\u696D\u7A2E\u3011${data.businessName}
 \u3010\u30BF\u30FC\u30B2\u30C3\u30C8\u3011${data.target}
-\u3010\u5F37\u307F\u30FB\u7279\u5FB4\u3011${data.strengths}
 \u3010\u89E3\u6C7A\u3067\u304D\u308B\u60A9\u307F\u3011${data.problemsSolved}
-\u3010\u5B9F\u7E3E\u30FB\u6570\u5B57\u3011${data.results}
+${buildStoreInfoBlock(data)}
 \u3010\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u3011${char}
 \u3010\u30C8\u30FC\u30F3\u3011${data.tone}
 \u3010\u30AB\u30E9\u30FC\u30A4\u30E1\u30FC\u30B8\u3011${data.colorImage}
+
+${SPECIFICITY_RULES}
 
 ## 4\u30B3\u30DE\u306E\u578B\uFF08\u56FA\u5B9A\uFF09
 - \u30B3\u30DE1\uFF1A\u60A9\u307F\u30FB\u8FF7\u3044\uFF08${purposes[0]}\uFF09
