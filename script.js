@@ -31,6 +31,7 @@ async function getImageData() {
 function collectFormData() {
   return {
     lpType: getValue("lpType"),
+    format: getValue("format"),
     businessName: getValue("businessName"),
     target: getValue("target"),
     strengths: getValue("strengths"),
@@ -47,6 +48,11 @@ function collectFormData() {
     colorImage: getValue("colorImage"),
     refLpUrl: getValue("refLpUrl"),
   };
+}
+
+// 表現形式は LP種別（集客/採用）とは独立した軸。未選択時は従来どおり漫画扱い
+function isMangaFormat(data) {
+  return data.format !== "通常";
 }
 
 function buildCharacterDesc(data) {
@@ -255,17 +261,33 @@ function buildCatchCopies(data) {
 
 function buildClaudePrompt(data, hasImage) {
   const char = buildCharacterDesc(data);
+  const isRecruit = data.lpType === "採用";
+  const isManga = isMangaFormat(data);
   const imageNote = hasImage ? "\n※添付画像を参考にキャラクターの見た目・雰囲気を反映してください。" : "";
 
-  if (data.lpType === "採用") {
-    return `あなたは採用LP制作のプロのコピーライターです。
-以下のヒアリング情報をもとに、求職者向け縦読み4コマ漫画採用LPの提案を作成してください。${imageNote}
+  const expert = isRecruit ? "採用LP制作" : isManga ? "漫画LP制作" : "LP制作";
+  const brief = isRecruit
+    ? isManga
+      ? "求職者向け縦読み4コマ漫画採用LPの提案を作成してください。"
+      : "求職者向け採用LP（漫画なし）の提案を作成してください。"
+    : isManga
+      ? "飲食店・地元ビジネス向けの縦読み4コマ漫画LPの改善提案とセリフ案を作成してください。"
+      : "飲食店・地元ビジネス向けのLP（漫画なし）の改善提案と本文案を作成してください。";
+
+  const bodySection = isManga
+    ? `## 4コマ漫画のセリフ案
+各コマに2〜3個の吹き出しセリフを、${isRecruit ? "求職者に刺さる" : ""}自然な日本語で提案してください。`
+    : `## セクション別の見出し・本文案
+ファーストビュー、共感、店主紹介、こだわり、${isRecruit ? "常連さんの日常、働く人の声" : "名物・おすすめ、お客様の声"}、CTAの各セクションについて、見出しと本文案を提案してください。入力がない項目のセクションは作らないでください。`;
+
+  return `あなたは${expert}のプロのコピーライターです。
+以下のヒアリング情報をもとに、${brief}${imageNote}
 
 【店名・業種】${data.businessName}
-【ターゲット求職者】${data.target}
-【解決できる悩み（求職者の）】${data.problemsSolved}
+【${isRecruit ? "ターゲット求職者" : "ターゲット"}】${data.target}
+【解決できる悩み${isRecruit ? "（求職者の）" : ""}】${data.problemsSolved}
 ${buildStoreInfoBlock(data)}
-【キャラクター】${char}
+【${isManga ? "キャラクター" : "店主・スタッフの人物像"}】${char}
 【トーン】${data.tone}
 【カラーイメージ】${data.colorImage}
 
@@ -273,39 +295,17 @@ ${SPECIFICITY_RULES}
 
 以下を出力してください：
 
-## 4コマ漫画のセリフ案
-各コマに2〜3個の吹き出しセリフを、求職者に刺さる自然な日本語で提案してください。
+${bodySection}
 
 ## キャッチコピー（5パターン）
-転職・就職を考える求職者の心に刺さる、短くて力強いキャッチコピーを5つ。
+${isRecruit
+  ? "転職・就職を考える求職者の心に刺さる、短くて力強いキャッチコピーを5つ。"
+  : "ターゲットの心に刺さる、短くて力強いキャッチコピーを5つ。"}
 
-## 採用LP構成アドバイス
-この職場の魅力を最大限に伝える採用LP構成の提案（3点）。`;
-  }
-
-  return `あなたは漫画LP制作のプロのコピーライターです。
-以下のヒアリング情報をもとに、飲食店・地元ビジネス向けの縦読み4コマ漫画LPの改善提案とセリフ案を作成してください。${imageNote}
-
-【店名・業種】${data.businessName}
-【ターゲット】${data.target}
-【解決できる悩み】${data.problemsSolved}
-${buildStoreInfoBlock(data)}
-【キャラクター】${char}
-【トーン】${data.tone}
-【カラーイメージ】${data.colorImage}
-
-${SPECIFICITY_RULES}
-
-以下を出力してください：
-
-## 4コマ漫画のセリフ案
-各コマに2〜3個の吹き出しセリフを、自然な日本語で提案してください。
-
-## キャッチコピー（5パターン）
-ターゲットの心に刺さる、短くて力強いキャッチコピーを5つ。
-
-## LP構成アドバイス
-この店舗の強みを最大限に活かすLP構成の提案（3点）。`;
+## ${isRecruit ? "採用LP構成アドバイス" : "LP構成アドバイス"}
+${isRecruit
+  ? "この職場の魅力を最大限に伝える採用LP構成の提案（3点）。"
+  : "この店にしかない材料を最大限に活かすLP構成の提案（3点）。"}`;
 }
 
 async function callClaudeAPI(prompt, imageData) {
@@ -341,15 +341,46 @@ function setClaudeError(message) {
   claudeOutput.textContent = `エラー: ${message}`;
 }
 
+// 漫画専用の出力ブロック。通常LPでは丸ごと隠す
+const MANGA_ONLY_BLOCKS = ["block-story", "block-panels", "block-manga", "block-upload"];
+
+function applyFormatVisibility(data) {
+  const manga = isMangaFormat(data);
+  MANGA_ONLY_BLOCKS.forEach((id) => {
+    const block = document.getElementById(id);
+    if (block) block.hidden = !manga;
+  });
+  renumberOutputBlocks();
+}
+
+// 隠したブロックの分だけ見出しの連番が飛ぶため、表示中のものだけを振り直す
+function renumberOutputBlocks() {
+  let visibleIndex = 0;
+  document.querySelectorAll("#output-section .output-block").forEach((block) => {
+    const heading = block.querySelector("h3");
+    if (!heading) return;
+    const label = heading.textContent.replace(/^\d+\.\s*/, "");
+    if (block.hidden) {
+      heading.textContent = label;
+      return;
+    }
+    visibleIndex += 1;
+    heading.textContent = `${visibleIndex}. ${label}`;
+  });
+}
+
 async function renderOutputs() {
   const data = collectFormData();
-  const panelPrompts = buildPanelPrompts(data);
+  const manga = isMangaFormat(data);
   const imageData = await getImageData();
 
-  storyOutput.textContent = buildStory(data);
-  promptOutput.textContent = panelPrompts.join("\n\n");
+  if (manga) {
+    storyOutput.textContent = buildStory(data);
+    promptOutput.textContent = buildPanelPrompts(data).join("\n\n");
+  }
   copyOutput.textContent = buildCatchCopies(data);
   outputSection.hidden = false;
+  applyFormatVisibility(data);
 
   setClaudeLoading(!!imageData);
 
@@ -496,6 +527,106 @@ ${SPECIFICITY_RULES}
 </div>
 
 HTMLのみ出力してください。説明文・コードブロック記号(\`\`\`)は不要です。`;
+}
+
+// 通常LP（漫画なし）用。空欄の項目に対応するセクションは指示ごと出さない
+function buildNormalLpPrompt(data) {
+  const char = buildCharacterDesc(data);
+  const isRecruit = data.lpType === "採用";
+
+  const ctaLabel     = isRecruit ? "今すぐ応募する" : "今すぐ予約・相談する";
+  const voiceLabel   = isRecruit ? "働いてみた感想" : "お客様の声";
+  const regularsHead = isRecruit ? "常連さんの日常" : "名物・おすすめ";
+
+  const sections = [
+    {
+      title: "ファーストビュー",
+      detail: `${data.businessName}が誰に向けた店かが一目で分かるキャッチコピーとサブコピー。写真枠を1つ置く`,
+    },
+    {
+      title: "共感",
+      detail: "【解決できる悩み】に書かれた状態を、読み手が自分のことだと感じる書き方で提示する",
+    },
+    data.origin && {
+      title: "店主・About",
+      detail: "【始めたきっかけ・続けている理由】の言葉をそのまま使う。人物像は上の情報を参考にする。写真枠を1つ置く",
+    },
+    data.strengths && {
+      title: "こだわり",
+      detail: "【一番手間・時間をかけていること】を、具体的な手順・時間・回数のまま書く。写真枠を1つ置く",
+    },
+    data.regulars && {
+      title: regularsHead,
+      detail: "【常連さんの定番・口ぐせ】をそのまま使う。写真枠を1つ置く",
+    },
+    (data.results || data.episode) && {
+      title: voiceLabel,
+      detail: "【お客さんによく言われること】【印象に残っているやりとり】の言葉をそのまま使う。体験談を創作しない",
+    },
+    { title: "CTA", detail: `「${ctaLabel}」ボタン` },
+    { title: "フッター", detail: "店名・コピーライト" },
+  ].filter(Boolean);
+
+  const sectionList = sections
+    .map((section, index) => `${index + 1}. ${section.title}：${section.detail}`)
+    .join("\n");
+
+  return `あなたはプロのWebデザイナーです。以下の情報をもとにスマホ対応のLP（HTMLファイル1つ、漫画は使わない）を生成してください。
+
+【LP種別】${data.lpType}LP
+【店名・業種】${data.businessName}
+【ターゲット】${data.target}
+【解決できる悩み】${data.problemsSolved}
+${buildStoreInfoBlock(data)}
+【店主・スタッフの人物像】${char}
+【トーン】${data.tone}
+【カラーイメージ】${data.colorImage}
+
+${SPECIFICITY_RULES}
+
+## 出力ルール（必ず守ること）
+- DOCTYPE〜</body></html>まで完全に出力する（末尾まで省略しない）
+- CSSはstyleタグ内に記述する
+- JavaScriptは不要
+- max-width:480px、スマートフォンでの閲覧を前提にする
+- HTMLのみ出力する。説明文・コードブロック記号(\`\`\`)は不要
+
+## セクション構成（この順番・この数だけ。追加も削除もしない）
+${sectionList}
+
+## デザインの方向性（重要）
+- 配色・書体の印象・装飾は、この店の題材から引くこと。【カラーイメージ】の入力と、業種・こだわりの内容を手がかりにする
+- 汎用テンプレートに情報を流し込むのではなく、この店にしか成立しない見た目にすること
+- 次のような、どのLPにも出てくる作りは避ける
+  - 白背景に角丸カードを並べただけの構成
+  - 青紫系のグラデーション
+  - 均等な3カラムのカード並び
+  - 内容を説明していない区切り線・アイコン・飾り罫
+- 装飾を足すかどうかは、その要素が店の題材を説明しているかどうかで判断する
+- 漫画がないぶん、配色・余白・文字サイズの差・行間で読ませること
+
+## 写真枠のルール（厳守）
+- 写真は後から差し替える前提で、枠だけを置く
+- 枠は各セクション最大1つ、全体で4〜6個まで
+- 構造は次の形にする。data-slot にはそのセクションを表す英数字を入れる
+
+<!-- 写真差し替え位置：（何の写真を入れるか） -->
+<div class="photo-slot" data-slot="hero"><span>店の外観</span></div>
+
+- 以下のCSSをstyleタグに含める。背景色と文字色は、そのLPの配色に合わせた同系色にすること（灰色一色の空き枠にしない）
+
+.photo-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+
+- 枠の中央には、そこに入る写真の内容を短いラベルとして表示する
+- 写真が1枚も入っていない状態でも、文章だけで意味が通り、余白が破綻しないようにする
+- 「写真をご覧ください」のように、画像がないと成立しない文章を書かない`;
 }
 
 // ── Canvas合成：生成済み画像にセリフ吹き出しを焼き込む ─────────────────────────────────
@@ -799,9 +930,10 @@ if (generateLpButton) {
     downloadLpButton.hidden = true;
 
     try {
+      const manga = isMangaFormat(data);
       const imageData = await getImageData();
-      const prompt = buildLpPrompt(data);
-      const body = { prompt, mode: "lp" };
+      const prompt = manga ? buildLpPrompt(data) : buildNormalLpPrompt(data);
+      const body = { prompt, mode: "lp", format: manga ? "漫画" : "通常" };
 
       if (data.refLpUrl) body.refLpUrl = data.refLpUrl;
 
@@ -820,8 +952,8 @@ if (generateLpButton) {
 
       if (!response.ok) throw new Error(result.error || "APIエラー");
 
-      generatedLpHtml = await injectMangaImages(result.result);
-      const injected = Object.keys(lastGeneratedMangaImages).length >= 4;
+      generatedLpHtml = manga ? await injectMangaImages(result.result) : result.result;
+      const injected = manga && Object.keys(lastGeneratedMangaImages).length >= 4;
       lpStatus.textContent = injected
         ? "LP HTMLの生成が完了しました！生成済み漫画画像を埋め込みました。ダウンロードして確認してください。"
         : "LP HTMLの生成が完了しました！ダウンロードして確認してください。";
@@ -1049,6 +1181,11 @@ if (generateMangaDataButton) {
   generateMangaDataButton.addEventListener("click", async () => {
     const data = collectFormData();
 
+    if (!isMangaFormat(data)) {
+      mangaDataStatus.textContent = "通常LP（漫画なし）では4コマ漫画データは生成しません。";
+      return;
+    }
+
     if (!data.lpType || !data.businessName) {
       mangaDataStatus.textContent = "\u5148\u306B\u30D5\u30A9\u30FC\u30E0\u3092\u5165\u529B\u3057\u3066\u300C\u751F\u6210\u3059\u308B\u300D\u3092\u5B9F\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002";
       return;
@@ -1171,6 +1308,11 @@ function renderImageCard(panelIndex, imageBase64, mediaType) {
 
 if (generateImagesButton) {
   generateImagesButton.addEventListener("click", async () => {
+    if (!isMangaFormat(collectFormData())) {
+      imageGenStatus.textContent = "通常LP（漫画なし）では4コマ画像は生成しません。";
+      return;
+    }
+
     if (!lastMangaJson || !lastMangaJson.panels) {
       imageGenStatus.textContent = "\u5148\u306B\u300C4\u30B3\u30DE\u30C7\u30FC\u30BF\u3092\u751F\u6210\u300D\u3092\u5B9F\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002";
       return;

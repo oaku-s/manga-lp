@@ -27,6 +27,14 @@
           </label>
 
           <label>
+            <span>表現形式</span>
+            <select id="format" required>
+              <option value="漫画">4コマ漫画LP</option>
+              <option value="通常">通常LP（漫画なし）</option>
+            </select>
+          </label>
+
+          <label>
             <span>業種・店名</span>
             <input type="text" id="businessName" required placeholder="例：整体院 すこやかボディ" />
           </label>
@@ -120,7 +128,7 @@
       <section class="card" id="output-section" hidden>
         <h2>生成結果</h2>
 
-        <article class="output-block">
+        <article class="output-block" id="block-story">
           <div class="output-head">
             <h3>1. 4コマのストーリー構成</h3>
             <button type="button" class="copy-btn" data-copy-target="storyOutput">コピー</button>
@@ -128,7 +136,7 @@
           <pre id="storyOutput" class="output-text"></pre>
         </article>
 
-        <article class="output-block">
+        <article class="output-block" id="block-panels">
           <div class="output-head">
             <h3>2. 画像生成プロンプト（4コマ分）</h3>
             <button type="button" class="copy-btn" data-copy-target="promptOutput">コピー</button>
@@ -161,7 +169,7 @@
           <button type="button" id="downloadLpButton" class="primary-btn" hidden>HTMLをダウンロード</button>
         </article>
 
-        <article class="output-block">
+        <article class="output-block" id="block-manga">
           <div class="output-head">
             <h3>6. 4コマ漫画データを生成</h3>
             <button type="button" class="primary-btn" id="generateMangaDataButton">4コマデータを生成</button>
@@ -174,7 +182,7 @@
           <div id="mangaImagesContainer" hidden></div>
         </article>
 
-        <article class="output-block">
+        <article class="output-block" id="block-upload">
           <div class="output-head">
             <h3>7. 手動画像アップロード（API不要）</h3>
           </div>
