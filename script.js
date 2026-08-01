@@ -995,11 +995,10 @@ const generateImagesButton    = document.getElementById("generateImagesButton");
 const imageGenStatus          = document.getElementById("imageGenStatus");
 const mangaImagesContainer    = document.getElementById("mangaImagesContainer");
 
-function buildMangaJsonPrompt(data) {
-  const char = buildCharacterDesc(data);
+// 4\u30B3\u30DE\u306E\u76EE\u7684\u306F\u5165\u529B\u304B\u3089\u4E00\u610F\u306B\u6C7A\u307E\u308B\u3002\u30D7\u30ED\u30F3\u30D7\u30C8\u3068\u5FDC\u7B54\u306E\u7A81\u304D\u5408\u308F\u305B\u3067\u540C\u3058\u5024\u3092\u4F7F\u3046
+function buildPanelPurposes(data) {
   const isRecruit = data.lpType === "\u63A1\u7528";
-
-  const purposes = isRecruit
+  return isRecruit
     ? [
         "\u6C42\u8077\u8005\u306E\u60A9\u307F\u30FB\u8EE2\u8077\u3078\u306E\u8FF7\u3044\u3092\u63CF\u304F",
         "\u8077\u5834\u3068\u306E\u51FA\u4F1A\u3044\u30FB\u8208\u5473\u3092\u6301\u3064\u77AC\u9593\u3092\u63CF\u304F",
@@ -1012,6 +1011,15 @@ function buildMangaJsonPrompt(data) {
         "\u30B5\u30FC\u30D3\u30B9\u4F53\u9A13\u30FB\u9B45\u529B\u3092\u7406\u89E3\u3059\u308B\u5834\u9762\u3092\u63CF\u304F",
         "\u60A9\u307F\u89E3\u6D88\u30FB\u6E80\u8DB3\u30FB\u6B21\u306E\u884C\u52D5\u3092\u63CF\u304F",
       ];
+}
+
+// \u5168\u30B3\u30DE\u5171\u901A\u306E\u56FA\u5B9A\u5024\u3002\u30D7\u30ED\u30F3\u30D7\u30C8\u306B\u3082\u30AF\u30E9\u30A4\u30A2\u30F3\u30C8\u5074\u306E\u4E0A\u66F8\u304D\u306B\u3082\u540C\u3058\u3082\u306E\u3092\u4F7F\u3046
+const MANGA_NEGATIVE_PROMPT =
+  "text, speech bubbles, captions, watermark, blurry, low quality, realistic photo, 3D render, multiple panels, horizontal layout, grid layout, collage";
+
+function buildMangaJsonPrompt(data) {
+  const char = buildCharacterDesc(data);
+  const purposes = buildPanelPurposes(data);
 
   return `\u3042\u306A\u305F\u306F\u6F2B\u753BLP\u5236\u4F5C\u3068\u753B\u50CF\u751F\u6210\u30D7\u30ED\u30F3\u30D7\u30C8\u8A2D\u8A08\u306E\u5C02\u9580\u5BB6\u3067\u3059\u3002\u4EE5\u4E0B\u306E\u30D2\u30A2\u30EA\u30F3\u30B0\u60C5\u5831\u3092\u3082\u3068\u306B\u30014\u30B3\u30DE\u6F2B\u753B\u306E\u53F0\u672C\u30C7\u30FC\u30BF\u3092JSON\u5F62\u5F0F\u3067\u751F\u6210\u3057\u3066\u304F\u3060\u3055\u3044\u3002
 
@@ -1032,6 +1040,11 @@ ${SPECIFICITY_RULES}
 - \u30B3\u30DE3\uFF1A\u4F53\u9A13\u30FB\u9B45\u529B\u7406\u89E3\uFF08${purposes[2]}\uFF09
 - \u30B3\u30DE4\uFF1A\u6E80\u8DB3\u30FB\u884C\u52D5\uFF08${purposes[3]}\uFF09
 
+## \u767B\u5834\u4EBA\u7269\uFF082\u4EBA\uFF09
+- \u4E3B\u4EBA\u516C\uFF1A${data.target}\u3002\u8AAD\u307F\u624B\u5074\u306E\u4EBA\u7269\u3067\u30014\u30B3\u30DE\u3059\u3079\u3066\u306B\u767B\u5834\u3059\u308B\u3002common_protagonist_prompt \u3067\u5916\u898B\u30FB\u9AEA\u578B\u30FB\u670D\u88C5\u3092\u56FA\u5B9A\u3059\u308B
+- \u5E97\u5074\u306E\u4EBA\u7269\uFF1A${char}\u3002common_character_prompt \u3067\u5916\u898B\u3092\u56FA\u5B9A\u3059\u308B
+- \u30B3\u30DE\u3054\u3068\u306B\u4E3B\u4EBA\u516C\u306E\u9854\u30FB\u9AEA\u578B\u30FB\u670D\u88C5\u304C\u5909\u308F\u3063\u3066\u306F\u3044\u3051\u306A\u3044\u3002\u5404\u30B3\u30DE\u306E image_prompt \u306B\u306F\u3001\u767B\u5834\u3059\u308B\u4EBA\u7269\u306E\u5171\u901A\u30D7\u30ED\u30F3\u30D7\u30C8\u306E\u5185\u5BB9\u3092\u305D\u306E\u307E\u307E\u66F8\u304D\u5199\u3057\u3066\u542B\u3081\u308B\u3053\u3068
+
 ## image_prompt \u306E\u4F5C\u6210\u30EB\u30FC\u30EB
 - GPT Image 2\u306B\u305D\u306E\u307E\u307E\u6E21\u305B\u308B\u82F1\u8A9E\u30D7\u30ED\u30F3\u30D7\u30C8\u306B\u3059\u308B
 - \u5FC5\u305A\u542B\u3081\u308B\u8981\u7D20\uFF1A\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u306E\u5916\u898B / \u80CC\u666F\u30FB\u5834\u6240 / \u8868\u60C5\u30FB\u611F\u60C5 / \u69CB\u56F3 / \u30B9\u30BF\u30A4\u30EB / \u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8
@@ -1048,7 +1061,8 @@ ${SPECIFICITY_RULES}
 \u4EE5\u4E0B\u306EJSON\u5F62\u5F0F\u306E\u307F\u51FA\u529B\u3057\u3066\u304F\u3060\u3055\u3044\u3002\u8AAC\u660E\u6587\u3084\`\`\`\u306F\u4E0D\u8981\u3067\u3059\u3002
 
 {
-  "common_character_prompt": "\uFF08\u5168\u30B3\u30DE\u5171\u901A\u306E\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u5916\u898B\u63CF\u5199\u3092\u82F1\u8A9E\u3067\u8A18\u8FF0\u3002\u4F8B\uFF1AA friendly Japanese woman in her 30s, short black hair, wearing a white apron, warm smile, anime-style illustration\uFF09",
+  "common_character_prompt": "\uFF08\u5E97\u5074\u306E\u4EBA\u7269\u306E\u5916\u898B\u63CF\u5199\u3092\u82F1\u8A9E\u3067\u8A18\u8FF0\u3002\u4F8B\uFF1AA friendly Japanese woman in her 30s, short black hair, wearing a white apron, warm smile, anime-style illustration\uFF09",
+  "common_protagonist_prompt": "\uFF08\u4E3B\u4EBA\u516C\uFF1D${data.target}\u306E\u5916\u898B\u30FB\u9AEA\u578B\u30FB\u670D\u88C5\u3092\u82F1\u8A9E\u3067\u56FA\u5B9A\u3057\u3066\u8A18\u8FF0\u3002\u5168\u30B3\u30DE\u3067\u540C\u4E00\u4EBA\u7269\u3068\u5206\u304B\u308B\u5177\u4F53\u6027\u3092\u6301\u305F\u305B\u308B\u3002\u4F8B\uFF1AA Japanese man in his 30s, short black hair with a side part, wearing a navy business suit and a light blue shirt, tired expression, anime-style illustration\uFF09",
   "panels": [
     {
       "panel": 1,
@@ -1057,7 +1071,7 @@ ${SPECIFICITY_RULES}
       "emotion": "\u3053\u306E\u30B3\u30DE\u306E\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u306E\u611F\u60C5\u30FB\u8868\u60C5\uFF08\u4F8B\uFF1A\u56F0\u60D1\u3057\u305F\u8868\u60C5\u3067\u80A9\u3092\u843D\u3068\u3057\u3066\u3044\u308B\uFF09",
       "dialogue": ["\u30BB\u30EA\u30D51", "\u30BB\u30EA\u30D52"],
       "narration": "\u30CA\u30EC\u30FC\u30B7\u30E7\u30F3\u30FB\u5FC3\u7406\u63CF\u5199\uFF0830\u6587\u5B57\u7A0B\u5EA6\uFF09",
-      "image_prompt": "manga-style illustration, single vertical panel, no text, no speech bubbles, [common_character_prompt \u306E\u5185\u5BB9], [\u80CC\u666F\u30FB\u5834\u6240\u306E\u63CF\u5199], [\u8868\u60C5\u30FB\u30DD\u30FC\u30BA], [\u69CB\u56F3], [\u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8]. Vertical comic panel format, portrait orientation.",
+      "image_prompt": "manga-style illustration, single vertical panel, no text, no speech bubbles, [\u3053\u306E\u30B3\u30DE\u306B\u767B\u5834\u3059\u308B\u4EBA\u7269\u306E\u5171\u901A\u30D7\u30ED\u30F3\u30D7\u30C8\u306E\u5185\u5BB9], [\u80CC\u666F\u30FB\u5834\u6240\u306E\u63CF\u5199], [\u8868\u60C5\u30FB\u30DD\u30FC\u30BA], [\u69CB\u56F3], [\u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8]. Vertical comic panel format, portrait orientation.",
       "negative_prompt": "text, speech bubbles, captions, watermark, blurry, low quality, realistic photo, 3D render, multiple panels, horizontal layout, grid layout, collage"
     },
     {
@@ -1094,6 +1108,22 @@ ${SPECIFICITY_RULES}
 }`;
 }
 
+// プロンプト側で確定している項目は、モデルの書き写しを採用せずクライアントの値で上書きする。
+// モデルが考える項目（scene / emotion / dialogue / narration / image_prompt / 共通プロンプト）はそのまま。
+function normalizeMangaJson(parsed, data) {
+  const purposes = buildPanelPurposes(data);
+  const panels = Array.isArray(parsed.panels) ? parsed.panels : [];
+
+  parsed.panels = panels.map((panel, index) => ({
+    ...panel,
+    panel: index + 1,
+    purpose: purposes[index] ?? panel.purpose ?? "",
+    negative_prompt: MANGA_NEGATIVE_PROMPT,
+  }));
+
+  return parsed;
+}
+
 function renderMangaCards(text) {
   let jsonText = text.trim();
   const match = jsonText.match(/```(?:json)?\s*([\s\S]+?)\s*```/);
@@ -1111,17 +1141,24 @@ function renderMangaCards(text) {
   }
 
   // \u5171\u901A\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u30D7\u30ED\u30F3\u30D7\u30C8
-  lastMangaJson = parsed;
+  lastMangaJson = normalizeMangaJson(parsed, collectFormData());
 
-  const commonCharHtml = parsed.common_character_prompt
-    ? `<div class="manga-common-char">
+  // 店側の人物と主人公の共通プロンプトを、それぞれ1枚のカードとして出す
+  const commonPromptBlocks = [
+    { id: "mangaCommonChar", label: "共通キャラクタープロンプト（店側の人物）", value: parsed.common_character_prompt },
+    { id: "mangaCommonProtagonist", label: "共通キャラクタープロンプト（主人公・全コマ共通）", value: parsed.common_protagonist_prompt },
+  ];
+
+  const commonCharHtml = commonPromptBlocks
+    .filter((block) => block.value)
+    .map((block) => `<div class="manga-common-char">
         <div class="manga-common-char-head">
-          <span class="manga-common-char-label">\u5171\u901A\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u30D7\u30ED\u30F3\u30D7\u30C8\uFF08\u5168\u30B3\u30DE\u5171\u901A\uFF09</span>
-          <button type="button" class="copy-btn manga-copy-btn" data-copy-inline="mangaCommonChar">\u30B3\u30D4\u30FC</button>
+          <span class="manga-common-char-label">${block.label}</span>
+          <button type="button" class="copy-btn manga-copy-btn" data-copy-inline="${block.id}">コピー</button>
         </div>
-        <span id="mangaCommonChar" class="manga-common-char-text">${parsed.common_character_prompt}</span>
-      </div>`
-    : "";
+        <span id="${block.id}" class="manga-common-char-text">${block.value}</span>
+      </div>`)
+    .join("");
 
   const panels = parsed.panels || [];
   const cardsHtml = panels.map((panel) => {
@@ -1243,8 +1280,13 @@ if (generateMangaDataButton) {
 }
 
 // \u2500\u2500 4\u30B3\u30DE\u753B\u50CF\u751F\u6210\uFF08GPT Image 2\uFF09 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function buildImagePrompt(panel, commonChar) {
-  const charPart = commonChar ? commonChar + ". " : "";
+function buildImagePrompt(panel, commonChar, commonProtagonist) {
+  // 主人公は4コマすべてに登場するため、コマごとに姿が変わらないよう先頭で固定する
+  const charPart =
+    (commonProtagonist
+      ? "Main character (appears in every panel, keep the same face, hairstyle and outfit): " + commonProtagonist + ". "
+      : "") +
+    (commonChar ? commonChar + ". " : "");
 
   // image_prompt から "no text / no speech bubbles / no captions / no dialogue" を除去する
   const imgPrompt = (panel.image_prompt || "")
@@ -1335,6 +1377,7 @@ if (generateImagesButton) {
     isManualImageUploadMode = false;
 
     const commonChar = lastMangaJson.common_character_prompt || "";
+    const commonProtagonist = lastMangaJson.common_protagonist_prompt || "";
     const panels = lastMangaJson.panels;
     let successCount = 0;
 
@@ -1344,7 +1387,7 @@ if (generateImagesButton) {
       imageGenStatus.textContent = `${panelNum}\u30B3\u30DE\u76EE\u3092\u751F\u6210\u4E2D... (${i + 1}/${panels.length})`;
 
       try {
-        const prompt = buildImagePrompt(panel, commonChar);
+        const prompt = buildImagePrompt(panel, commonChar, commonProtagonist);
         const result = await generateSingleImage(prompt, panelNum);
         renderImageCard(panelNum, result.imageBase64, result.mediaType || "image/png");
         lastGeneratedMangaImages[panelNum] = { base64: result.imageBase64, mediaType: result.mediaType || "image/png" };
