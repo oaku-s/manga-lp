@@ -1477,3 +1477,158 @@ setupUploadListener("uploadProfile", "previewProfile", (data) => {
   });
 });
 
+
+// ── 案件の保存・読み込み ─────────────────────────────────────────────
+// 通信相手は同一オリジンの /api/projects だけ。共有トークンはサーバー側にあり、
+// ブラウザには渡らない。
+
+const projectSelect     = document.getElementById("projectSelect");
+const saveModeSelect    = document.getElementById("saveMode");
+const loadProjectButton = document.getElementById("loadProjectButton");
+const saveProjectButton = document.getElementById("saveProjectButton");
+const projectStatus     = document.getElementById("projectStatus");
+
+// 保存対象のフォーム項目。GAS 側の FIELD_TO_HEADER と対応する
+const PROJECT_FIELDS = [
+  "lpType",
+  "format",
+  "businessName",
+  "target",
+  "problemsSolved",
+  "strengths",
+  "results",
+  "regulars",
+  "episode",
+  "origin",
+  "characterGender",
+  "characterRole",
+  "characterPersonality",
+  "characterAppearance",
+  "tone",
+  "colorImage",
+  "refLpUrl",
+];
+
+function setProjectStatus(message) {
+  if (projectStatus) projectStatus.textContent = message;
+}
+
+async function callProjectsApi(action, payload) {
+  const response = await fetch("/api/projects", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, ...payload }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "案件APIのエラー");
+  return data;
+}
+
+function collectProjectValues() {
+  const values = {};
+  PROJECT_FIELDS.forEach((field) => { values[field] = getValue(field); });
+  return values;
+}
+
+function applyProjectValues(values) {
+  PROJECT_FIELDS.forEach((field) => {
+    const element = document.getElementById(field);
+    if (element && field in values) element.value = values[field] || "";
+  });
+}
+
+async function refreshProjectList(selectedId) {
+  if (!projectSelect) return;
+
+  const data = await callProjectsApi("list", {});
+  const projects = data.projects || [];
+
+  const options = projects
+    .map((project) => {
+      const label = `${project.projectId}｜${project.name || "(店名未入力)"}`;
+      return `<option value="${project.projectId}">${label}</option>`;
+    })
+    .join("");
+
+  projectSelect.innerHTML = `<option value="">新規案件</option>` + options;
+  if (selectedId) projectSelect.value = selectedId;
+}
+
+async function loadSelectedProject() {
+  const projectId = projectSelect ? projectSelect.value : "";
+  if (!projectId) {
+    setProjectStatus("「新規案件」が選ばれています。読み込む案件を選んでください。");
+    return;
+  }
+
+  setProjectStatus("読み込み中...");
+  const data = await callProjectsApi("get", { projectId });
+  const project = data.project;
+
+  applyProjectValues(project.values || {});
+  if (saveModeSelect) saveModeSelect.value = "update";
+  setProjectStatus(`${project.projectId}｜${project.name} を読み込みました（最終更新 ${project.updatedAt || "不明"}）`);
+}
+
+async function saveCurrentProject() {
+  const mode = saveModeSelect ? saveModeSelect.value : "create";
+  const projectId = projectSelect ? projectSelect.value : "";
+  const values = collectProjectValues();
+
+  if (!values.businessName) {
+    setProjectStatus("「業種・店名」を入力してから保存してください。");
+    return;
+  }
+
+  if (mode === "update" && !projectId) {
+    setProjectStatus("上書き先の案件が選ばれていません。案件を選ぶか、新規案件として保存してください。");
+    return;
+  }
+
+  setProjectStatus("保存中...");
+
+  if (mode === "update") {
+    const updated = await callProjectsApi("update", { projectId, values });
+    await refreshProjectList(projectId);
+    setProjectStatus(`${projectId} に上書き保存しました（${updated.updatedAt}）`);
+    return;
+  }
+
+  const created = await callProjectsApi("create", { values });
+  await refreshProjectList(created.projectId);
+  if (saveModeSelect) saveModeSelect.value = "update";
+  setProjectStatus(`新しい案件 ${created.projectId} として保存しました`);
+}
+
+// 二重押しを防ぎつつ、失敗理由を必ず画面に出す
+function bindProjectButton(button, label, handler) {
+  if (!button) return;
+  button.addEventListener("click", async () => {
+    const original = button.textContent;
+    button.disabled = true;
+    button.textContent = "処理中...";
+    try {
+      await handler();
+    } catch (error) {
+      setProjectStatus(`${label}に失敗しました: ${error.message}`);
+    } finally {
+      button.disabled = false;
+      button.textContent = original;
+    }
+  });
+}
+
+bindProjectButton(loadProjectButton, "読み込み", loadSelectedProject);
+bindProjectButton(saveProjectButton, "保存", saveCurrentProject);
+
+if (projectSelect) {
+  // 案件を選び直したら、保存方法もその案件への上書きに寄せる
+  projectSelect.addEventListener("change", () => {
+    if (saveModeSelect) saveModeSelect.value = projectSelect.value ? "update" : "create";
+  });
+
+  refreshProjectList().catch((error) => {
+    setProjectStatus(`案件一覧を取得できませんでした: ${error.message}`);
+  });
+}

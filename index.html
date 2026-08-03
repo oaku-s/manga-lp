@@ -14,6 +14,30 @@
       </header>
 
       <section class="card">
+        <h2>案件</h2>
+        <div class="project-bar">
+          <label>
+            <span>保存済みの案件</span>
+            <select id="projectSelect">
+              <option value="">新規案件</option>
+            </select>
+          </label>
+          <label>
+            <span>保存方法</span>
+            <select id="saveMode">
+              <option value="create">新規案件として保存</option>
+              <option value="update">選択中の案件に上書き保存</option>
+            </select>
+          </label>
+          <div class="project-actions">
+            <button type="button" class="primary-btn" id="loadProjectButton">読み込む</button>
+            <button type="button" class="primary-btn" id="saveProjectButton">この案件を保存</button>
+          </div>
+          <p id="projectStatus" class="status-text"></p>
+        </div>
+      </section>
+
+      <section class="card">
         <h2>ヒアリングフォーム</h2>
         <form id="hearing-form" class="form-grid">
         
