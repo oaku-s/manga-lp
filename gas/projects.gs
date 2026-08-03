@@ -98,8 +98,20 @@ function doGet() {
 
 // ── 認証 ──────────────────────────────────────────────────────────
 
+/**
+ * 期待するトークン。スクリプトプロパティを優先し、無ければ token.gs の定数を使う。
+ * token.gs は setup スクリプトが生成して clasp push で送るファイルで、Git 管理外。
+ * これによりGASエディタを開かずにトークンを設定できる。
+ */
+function expectedToken() {
+  const fromProperty = PropertiesService.getScriptProperties().getProperty("SHARED_TOKEN");
+  if (fromProperty) return fromProperty;
+  if (typeof SHARED_TOKEN_FALLBACK === "string" && SHARED_TOKEN_FALLBACK) return SHARED_TOKEN_FALLBACK;
+  return "";
+}
+
 function isAuthorized(token) {
-  const expected = PropertiesService.getScriptProperties().getProperty("SHARED_TOKEN");
+  const expected = expectedToken();
   if (!expected || !token) return false;
   if (token.length !== expected.length) return false;
 

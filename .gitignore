@@ -6,3 +6,4 @@
 # clasp（スクリプトIDは環境ごとに異なるため各自で作成）
 gas/.clasp.json
 .clasp.json
+gas/token.gs
