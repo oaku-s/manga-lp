@@ -4,9 +4,23 @@
 飲食店・地元ビジネス向けの縦読み漫画LPを制作・納品するサービス
 
 ## 現状
-- 飲食店集客LP公開済み：manga-lp-eight.vercel.app
 - GitHub：oaku-s/manga-lp
 - 技術スタック：HTML/CSS/JS
+
+### 公開URL（Vercelプロジェクトが複数ある。取り違え注意）
+
+| URL | Vercelプロジェクト | 中身 | このリポジトリの `main` を配信するか |
+|---|---|---|---|
+| **manga-lp-gyvq.vercel.app** | `manga-lp-gyvq` | 漫画LPプロンプト自動生成ツール（トップ）＋制作サンプル | **する**（`.vercel/repo.json` で連携。`main` へのpushで自動デプロイ） |
+| manga-lp-eight.vercel.app | `manga-lp` | 飲食店集客LP（初期の公開物） | **しない**（別プロジェクト。最終更新 2026-05-18頃で停止） |
+| manga-lp-sample.vercel.app | `manga-lp-sample` | 別サンプル | **しない**（最終更新 2026-06-16頃） |
+
+- `main` にpushしたあとの反映確認は **manga-lp-gyvq.vercel.app** で行う。
+- 制作サンプルは manga-lp-gyvq にのみ存在する：
+  - https://manga-lp-gyvq.vercel.app/samples/normal/ （通常版）
+  - https://manga-lp-gyvq.vercel.app/samples/leadgen/ （リード獲得版）
+  - https://manga-lp-gyvq.vercel.app/samples/recruiting/ （求人版）
+- manga-lp-eight.vercel.app と manga-lp-sample.vercel.app では `/samples/...` は 404 になる。
 
 ## 役割分担
 | 作業 | ツール |
