@@ -473,6 +473,20 @@ let lastCompositedMangaImages = {}; // { [panelNum]: dataURL（吹き出し合�
 let lastGeneratedProfileImage = null; // { base64, mediaType } ヒーロー・キャラ紹介用
 let isManualImageUploadMode = false;  // 手動アップロード画像使用中フラグ
 
+// ZIPに同梱する画像。HTMLはこの path を相対参照するだけにして、base64を埋め込まない
+let generatedLpMedia = []; // [{ path: "media/koma-01.jpg", dataUrl }]
+
+// dataURL を media/ 配下のファイルとして登録し、HTMLから参照する相対パスを返す。
+// .photo-slot へ画像を差し込む場合も addLpMedia(dataUrl, "photo-" + slot) で同じ media/ に同居させる
+function addLpMedia(dataUrl, baseName) {
+  // resizeImageToJpeg は通常JPEGを返すが、失敗時は元画像（PNG等）にフォールバックするため実体から拡張子を決める
+  const mime = (dataUrl.match(/^data:([^;,]+)/) || [])[1] || "image/jpeg";
+  const ext = mime === "image/png" ? "png" : mime === "image/webp" ? "webp" : "jpg";
+  const path = `media/${baseName}.${ext}`;
+  generatedLpMedia.push({ path, dataUrl });
+  return path;
+}
+
 function buildLpPrompt(data) {
   const char = buildCharacterDesc(data);
   const isRecruit = data.lpType === "採用";
@@ -871,10 +885,10 @@ async function injectMangaImages(html) {
     el.innerHTML = "";
     if (numEl) el.appendChild(numEl);
 
-    // リサイズ＋圧縮
+    // リサイズ＋圧縮したものを media/ に出し、HTMLからは相対パスで参照する
     const compressed = await resizeImageToJpeg(imgData.base64, imgData.mediaType, 900, 0.88);
     const img = doc.createElement("img");
-    img.src       = compressed;
+    img.src       = addLpMedia(compressed, `koma-${String(panelNum).padStart(2, "0")}`);
     img.alt       = `${panelNum}コマ目`;
     img.className = "koma-generated-image";
     el.appendChild(img);
@@ -892,11 +906,20 @@ async function injectMangaImages(html) {
 
   // 人物紹介画像：最大幅600px・JPEG quality 0.88 に圧縮してから差し込む
   if (lastGeneratedProfileImage) {
-    const profileSrc = await resizeImageToJpeg(
+    const profileDataUrl = await resizeImageToJpeg(
       lastGeneratedProfileImage.base64,
       lastGeneratedProfileImage.mediaType,
       600, 0.88
     );
+
+    // 差し込み先が1つも無いLPもあるので、実際に使うときだけ media/ に登録する。
+    // 先に登録すると、どこからも参照されない画像がZIPに残ってしまう。
+    // 差し込み先が複数あっても実体は1つなので、パスは使い回す
+    let profilePath = null;
+    const profileSrc = () => {
+      if (!profilePath) profilePath = addLpMedia(profileDataUrl, "profile");
+      return profilePath;
+    };
 
     // 既存セレクターへの差し込み（中身を丸ごと img に置換）
     const profileSelectors = [
@@ -911,7 +934,7 @@ async function injectMangaImages(html) {
       doc.querySelectorAll(selector).forEach((el) => {
         el.innerHTML = "";
         const img = doc.createElement("img");
-        img.src       = profileSrc;
+        img.src       = profileSrc();
         img.alt       = "キャラクター";
         img.className = "lp-profile-image";
         el.appendChild(img);
@@ -925,7 +948,7 @@ async function injectMangaImages(html) {
       const heroBox = doc.createElement("div");
       heroBox.className = "hero-illust lp-profile-hero";
       const img = doc.createElement("img");
-      img.src       = profileSrc;
+      img.src       = profileSrc();
       img.alt       = "プロフィール画像";
       img.className = "lp-profile-image";
       heroBox.appendChild(img);
@@ -986,6 +1009,7 @@ if (generateLpButton) {
       ? "参考LPを分析してLP HTMLを生成中です（Gemini AI）..."
       : "Claude AIがLP HTMLを生成中です。少し待ってください...";
     downloadLpButton.hidden = true;
+    generatedLpMedia = []; // 前回生成分がZIPに紛れ込まないよう毎回リセットする
 
     try {
       const manga = isMangaFormat(data);
@@ -1013,8 +1037,11 @@ if (generateLpButton) {
       generatedLpHtml = manga ? await injectMangaImages(result.result) : result.result;
       const injected = manga && Object.keys(lastGeneratedMangaImages).length >= 4;
       lpStatus.textContent = injected
-        ? "LP HTMLの生成が完了しました！生成済み漫画画像を埋め込みました。ダウンロードして確認してください。"
+        ? `LP HTMLの生成が完了しました！画像${generatedLpMedia.length}点は media/ に分けています。ZIPでダウンロードして解凍してください。`
         : "LP HTMLの生成が完了しました！ダウンロードして確認してください。";
+      downloadLpButton.textContent = generatedLpMedia.length
+        ? "ZIPをダウンロード（画像同梱）"
+        : "HTMLをダウンロード";
       downloadLpButton.hidden = false;
 
     } catch (error) {
@@ -1026,16 +1053,64 @@ if (generateLpButton) {
   });
 }
 
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadHtmlOnly() {
+  triggerDownload(
+    new Blob(["\uFEFF" + generatedLpHtml], { type: "text/html;charset=utf-8" }),
+    "lp.html"
+  );
+}
+
+// dataURL の base64 部分だけを取り出す（JSZip に base64: true で渡すため）
+function dataUrlToBase64(dataUrl) {
+  return dataUrl.slice(dataUrl.indexOf(",") + 1);
+}
+
+async function downloadLpZip() {
+  const zip = new JSZip();
+  // ZIPのルート直下に index.html と media/ を置く。HTML内の "media/koma-01.jpg" がそのまま解決する階層
+  zip.file("index.html", generatedLpHtml);
+  for (const { path, dataUrl } of generatedLpMedia) {
+    zip.file(path, dataUrlToBase64(dataUrl), { base64: true });
+  }
+  const blob = await zip.generateAsync({ type: "blob" });
+  triggerDownload(blob, "lp.zip");
+}
+
 if (downloadLpButton) {
-  downloadLpButton.addEventListener("click", () => {
+  downloadLpButton.addEventListener("click", async () => {
     if (!generatedLpHtml) return;
-    const blob = new Blob(["\uFEFF" + generatedLpHtml], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "lp.html";
-    a.click();
-    URL.revokeObjectURL(url);
+
+    // 画像がなければZIPにする意味がないので単体HTMLのまま。
+    // 画像があるときにHTML単体を渡すと media/ を参照する壊れたファイルになるため、そちらは選ばせない
+    if (generatedLpMedia.length === 0) {
+      downloadHtmlOnly();
+      return;
+    }
+
+    if (typeof JSZip === "undefined") {
+      lpStatus.textContent =
+        "ZIPの生成に必要なJSZipを読み込めませんでした。HTML単体でダウンロードします（画像は含まれません）。";
+      downloadHtmlOnly();
+      return;
+    }
+
+    downloadLpButton.disabled = true;
+    try {
+      await downloadLpZip();
+    } catch (error) {
+      lpStatus.textContent = `ZIPの生成に失敗しました: ${error.message}`;
+    } finally {
+      downloadLpButton.disabled = false;
+    }
   });
 }
 
