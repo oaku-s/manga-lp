@@ -3,8 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>炭火焼鳥 とり喜 | 一人でも気まずくない、カウンター8席の焼鳥店｜制作サンプル</title>
+<title>炭火焼鳥 とりき | 一人でも気まずくない、カウンター8席の焼鳥店｜制作サンプル</title>
 <style>
+  /* ══════════════════════════════════════════
+     デザイン変数
+     色とフォントはすべてここで定義しています。
+     以降のCSSは var(--〇〇) を参照するだけなので、
+     見た目を変えたいときはこのブロックだけを直します。
+     ══════════════════════════════════════════ */
+  :root {
+    /* ── フォント ── */
+    --font-base: "Hiragino Mincho ProN", "Yu Mincho", "游明朝", Georgia, serif;
+
+    /* ── 基本の色（まずここを見る） ── */
+    --bg: #111009;              /* ページ全体の背景 */
+    --text: #c8b898;            /* 本文（p）の文字色 */
+    --accent: #c87a30;          /* アクセント＝炭火のオレンジ */
+    --accent-bright: #e8a040;   /* 明るいアクセント（強調・ホバー） */
+
+    /* ── 背景のバリエーション ── */
+    --bg-deep: #0d0b07;         /* 一段暗い背景：hero / craft / voice */
+    --bg-soft: #0f0c08;         /* わずかに明るい背景：empathy */
+    --bg-panel: #1a1208;        /* 囲みパネル：店主profile / 体験談 / hero写真枠 */
+    --bg-card: #1c1208;         /* 名物カードの背景 */
+    --bg-slot: #2a1e0e;         /* 写真差し替え枠の背景 */
+    --bg-footer: #0a0806;       /* フッターの背景 */
+
+    /* ── 文字色のバリエーション ── */
+    --text-base: #e8dfc8;       /* body既定（色指定のない要素が継承する） */
+    --text-heading: #f0e4c4;    /* 見出し h2 */
+    --text-emphasis: #f0e4c4;   /* 本文中の強調：結論文 / お客様の声 / CTA */
+    --text-hero: #f5ead0;       /* heroのキャッチコピー */
+    --text-menu-name: #f5ead0;  /* 名物の品名 */
+    --text-muted: #a09070;      /* 補足・説明文 */
+    --text-list: #b0a080;       /* 共感セクションのリスト */
+    --text-profile: #907858;    /* 店主プロフィール */
+    --text-dim: #706050;        /* 薄い注記：声の属性 / CTAサブ / フッター注記 */
+    --text-faint: #504030;      /* 最も薄い注記：CTA下の一文 */
+    --text-copyright: #403020;  /* コピーライト */
+    --on-accent: #0d0b07;       /* アクセント色の上に乗る文字（ボタン等） */
+
+    /* ── 罫線 ── */
+    --border: #2a1e0e;          /* セクションの区切り線 */
+    --border-strong: #4a2e0a;   /* 強い罫線：写真枠 / 体験談の上下 */
+    --border-card: #3a2408;     /* 名物カードの枠線 */
+    --border-subtle: #221a0c;   /* 淡い罫線：共感リスト / 店舗情報 */
+    --border-faint: #1e1608;    /* 最も淡い罫線：お客様の声 / フッター上部 */
+    --border-marker: #4a3010;   /* 共感リスト先頭の「──」 */
+
+    /* ── アクセントの用途別 ──
+       すべて --accent 系を参照しています。
+       「ボタンだけ別の色にしたい」といった場合は、
+       ここの1行を色コードに書き換えれば、その用途だけが変わります。 */
+    --accent-label: var(--accent);         /* 小見出しラベル / 店舗情報の項目名 / 店名 */
+    --accent-line: var(--accent);          /* 縦罫線・区切り線 */
+    --accent-fill: var(--accent);          /* 塗り：CTAボタン / 「名物」バッジ */
+    --accent-slot: var(--accent);          /* 写真差し替え枠の文字 */
+    --accent-hover: var(--accent-bright);  /* ボタンのホバー */
+    --accent-em: var(--accent-bright);     /* 本文中の <em> / 引用 */
+  }
+
   *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
@@ -16,9 +74,9 @@
   }
 
   body {
-    background-color: #111009;
-    color: #e8dfc8;
-    font-family: "Hiragino Mincho ProN", "Yu Mincho", "游明朝", Georgia, serif;
+    background-color: var(--bg);
+    color: var(--text-base);
+    font-family: var(--font-base);
     line-height: 1.9;
     max-width: 480px;
     margin: 0 auto;
@@ -32,15 +90,15 @@
     aspect-ratio: 4 / 3;
     font-size: 0.78rem;
     letter-spacing: 0.08em;
-    background-color: #2a1e0e;
-    color: #c87a30;
-    border: 1px solid #4a2e0a;
+    background-color: var(--bg-slot);
+    color: var(--accent-slot);
+    border: 1px solid var(--border-strong);
   }
 
   /* ── 共通 ── */
   .section {
     padding: 56px 24px;
-    border-bottom: 1px solid #2a1e0e;
+    border-bottom: 1px solid var(--border);
   }
 
   .section:last-of-type {
@@ -50,7 +108,7 @@
   .section-label {
     font-size: 0.68rem;
     letter-spacing: 0.22em;
-    color: #c87a30;
+    color: var(--accent-label);
     text-transform: uppercase;
     margin-bottom: 20px;
     display: block;
@@ -61,14 +119,14 @@
     font-weight: normal;
     line-height: 1.65;
     letter-spacing: 0.06em;
-    color: #f0e4c4;
+    color: var(--text-heading);
     margin-bottom: 28px;
   }
 
   p {
     font-size: 0.92rem;
     line-height: 2.0;
-    color: #c8b898;
+    color: var(--text);
     margin-bottom: 18px;
   }
 
@@ -78,23 +136,23 @@
 
   em {
     font-style: normal;
-    color: #e8a040;
+    color: var(--accent-em);
   }
 
   /* 炭火をイメージした区切り */
   .ember-rule {
     width: 40px;
     height: 2px;
-    background: linear-gradient(90deg, #c87a30, #e8a040, #c87a30);
+    background: linear-gradient(90deg, var(--accent-line), var(--accent-bright), var(--accent-line));
     margin: 0 0 28px 0;
     border: none;
   }
 
   /* ── 1. ファーストビュー ── */
   #hero {
-    background-color: #0d0b07;
+    background-color: var(--bg-deep);
     padding: 0;
-    border-bottom: 1px solid #2a1e0e;
+    border-bottom: 1px solid var(--border);
     position: relative;
   }
 
@@ -105,7 +163,7 @@
   #hero .hero-photo .photo-slot {
     aspect-ratio: 3 / 4;
     border: none;
-    background-color: #1a1208;
+    background-color: var(--bg-panel);
   }
 
   #hero .hero-overlay {
@@ -115,7 +173,7 @@
   .hero-store-name {
     font-size: 0.7rem;
     letter-spacing: 0.28em;
-    color: #c87a30;
+    color: var(--accent-label);
     margin-bottom: 20px;
     display: block;
   }
@@ -125,7 +183,7 @@
     font-weight: normal;
     line-height: 1.55;
     letter-spacing: 0.05em;
-    color: #f5ead0;
+    color: var(--text-hero);
     margin-bottom: 20px;
   }
 
@@ -136,15 +194,15 @@
   .hero-sub {
     font-size: 0.85rem;
     line-height: 1.95;
-    color: #a09070;
-    border-left: 2px solid #c87a30;
+    color: var(--text-muted);
+    border-left: 2px solid var(--accent-line);
     padding-left: 14px;
     margin-top: 24px;
   }
 
   /* ── 2. 共感 ── */
   #empathy {
-    background-color: #0f0c08;
+    background-color: var(--bg-soft);
   }
 
   .empathy-list {
@@ -155,10 +213,10 @@
 
   .empathy-list li {
     font-size: 0.9rem;
-    color: #b0a080;
+    color: var(--text-list);
     line-height: 1.85;
     padding: 12px 0;
-    border-bottom: 1px solid #221a0c;
+    border-bottom: 1px solid var(--border-subtle);
     padding-left: 20px;
     position: relative;
   }
@@ -167,7 +225,7 @@
     content: "──";
     position: absolute;
     left: 0;
-    color: #4a3010;
+    color: var(--border-marker);
     font-size: 0.65rem;
     top: 16px;
   }
@@ -180,31 +238,31 @@
     font-size: 1.05rem;
     font-weight: normal;
     line-height: 1.8;
-    color: #f0e4c4;
+    color: var(--text-emphasis);
     padding: 24px 0 0 0;
   }
 
   /* ── 3. 店主・About ── */
   #about {
-    background-color: #111009;
+    background-color: var(--bg);
   }
 
   .owner-profile {
     margin-top: 28px;
     padding: 20px;
-    background-color: #1a1208;
-    border-left: 2px solid #c87a30;
+    background-color: var(--bg-panel);
+    border-left: 2px solid var(--accent-line);
   }
 
   .owner-profile p {
     font-size: 0.82rem;
-    color: #907858;
+    color: var(--text-profile);
     margin-bottom: 0;
   }
 
   /* ── 4. こだわり ── */
   #craft {
-    background-color: #0d0b07;
+    background-color: var(--bg-deep);
   }
 
   .craft-step {
@@ -214,14 +272,14 @@
   .craft-step-num {
     font-size: 0.65rem;
     letter-spacing: 0.2em;
-    color: #c87a30;
+    color: var(--accent-label);
     display: block;
     margin-bottom: 6px;
   }
 
   .craft-step-title {
     font-size: 1.0rem;
-    color: #f0e4c4;
+    color: var(--text-emphasis);
     line-height: 1.6;
     margin-bottom: 10px;
     font-weight: normal;
@@ -229,20 +287,20 @@
 
   .craft-step-desc {
     font-size: 0.88rem;
-    color: #a09070;
+    color: var(--text-muted);
     line-height: 2.0;
   }
 
   /* ── 5. 名物・おすすめ ── */
   #menu {
-    background-color: #111009;
+    background-color: var(--bg);
   }
 
   .menu-feature {
     margin: 28px 0;
     padding: 28px 20px;
-    background-color: #1c1208;
-    border: 1px solid #3a2408;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-card);
     position: relative;
   }
 
@@ -251,8 +309,8 @@
     position: absolute;
     top: -10px;
     left: 20px;
-    background-color: #c87a30;
-    color: #0d0b07;
+    background-color: var(--accent-fill);
+    color: var(--on-accent);
     font-size: 0.65rem;
     letter-spacing: 0.18em;
     padding: 2px 10px;
@@ -260,7 +318,7 @@
 
   .menu-name {
     font-size: 1.5rem;
-    color: #f5ead0;
+    color: var(--text-menu-name);
     letter-spacing: 0.12em;
     margin-bottom: 12px;
     font-weight: normal;
@@ -268,28 +326,28 @@
 
   .menu-desc {
     font-size: 0.88rem;
-    color: #a09070;
+    color: var(--text-muted);
     line-height: 2.0;
     margin-bottom: 0;
   }
 
   .menu-quote {
     font-size: 0.92rem;
-    color: #e8a040;
+    color: var(--accent-em);
     font-style: italic;
     margin-top: 14px;
     padding-top: 14px;
-    border-top: 1px solid #2a1e0e;
+    border-top: 1px solid var(--border);
   }
 
   /* ── 6. お客様の声 ── */
   #voice {
-    background-color: #0d0b07;
+    background-color: var(--bg-deep);
   }
 
   .voice-item {
     padding: 24px 0;
-    border-bottom: 1px solid #1e1608;
+    border-bottom: 1px solid var(--border-faint);
   }
 
   .voice-item:last-of-type {
@@ -298,16 +356,16 @@
 
   .voice-quote {
     font-size: 0.95rem;
-    color: #f0e4c4;
+    color: var(--text-emphasis);
     line-height: 1.9;
     margin-bottom: 10px;
     padding-left: 16px;
-    border-left: 2px solid #c87a30;
+    border-left: 2px solid var(--accent-line);
   }
 
   .voice-attr {
     font-size: 0.72rem;
-    color: #706050;
+    color: var(--text-dim);
     letter-spacing: 0.1em;
     padding-left: 16px;
   }
@@ -315,35 +373,35 @@
   .voice-story {
     margin-top: 36px;
     padding: 24px 20px;
-    background-color: #1a1208;
-    border-top: 1px solid #4a2e0a;
-    border-bottom: 1px solid #4a2e0a;
+    background-color: var(--bg-panel);
+    border-top: 1px solid var(--border-strong);
+    border-bottom: 1px solid var(--border-strong);
   }
 
   .voice-story-label {
     font-size: 0.65rem;
     letter-spacing: 0.2em;
-    color: #c87a30;
+    color: var(--accent-label);
     margin-bottom: 14px;
     display: block;
   }
 
   .voice-story p {
     font-size: 0.88rem;
-    color: #a09070;
+    color: var(--text-muted);
     line-height: 2.1;
   }
 
   /* ── 7. CTA ── */
   #cta {
-    background-color: #111009;
+    background-color: var(--bg);
     text-align: center;
     padding: 64px 24px;
   }
 
   #cta .cta-catch {
     font-size: 1.1rem;
-    color: #f0e4c4;
+    color: var(--text-emphasis);
     letter-spacing: 0.06em;
     margin-bottom: 10px;
     font-weight: normal;
@@ -351,7 +409,7 @@
 
   #cta .cta-sub {
     font-size: 0.78rem;
-    color: #706050;
+    color: var(--text-dim);
     margin-bottom: 36px;
     line-height: 1.9;
   }
@@ -360,9 +418,9 @@
     display: block;
     width: 100%;
     padding: 18px 0;
-    background-color: #c87a30;
-    color: #0d0b07;
-    font-family: "Hiragino Mincho ProN", "Yu Mincho", "游明朝", Georgia, serif;
+    background-color: var(--accent-fill);
+    color: var(--on-accent);
+    font-family: var(--font-base);
     font-size: 0.95rem;
     letter-spacing: 0.18em;
     text-decoration: none;
@@ -373,33 +431,33 @@
   }
 
   .cta-btn:hover {
-    background-color: #e8a040;
+    background-color: var(--accent-hover);
   }
 
   /* サンプルのため無効化したボタン */
   .cta-btn[aria-disabled="true"],
   .cta-btn[aria-disabled="true"]:hover {
-    background-color: #c87a30;
+    background-color: var(--accent-fill);
     cursor: default;
   }
 
   .cta-note {
     font-size: 0.72rem;
-    color: #504030;
+    color: var(--text-faint);
     margin-top: 16px;
     letter-spacing: 0.06em;
   }
 
   /* ── 店舗情報 ── */
   #info {
-    background-color: #111009;
+    background-color: var(--bg);
   }
 
   .info-list div {
     display: flex;
     gap: 16px;
     padding: 12px 0;
-    border-bottom: 1px solid #221a0c;
+    border-bottom: 1px solid var(--border-subtle);
   }
 
   .info-list div:last-child {
@@ -410,40 +468,40 @@
     flex: 0 0 5.5em;
     font-size: 0.78rem;
     letter-spacing: 0.1em;
-    color: #c87a30;
+    color: var(--accent-label);
     line-height: 1.9;
   }
 
   .info-list dd {
     font-size: 0.88rem;
-    color: #a09070;
+    color: var(--text-muted);
     line-height: 1.9;
   }
 
   /* ── 8. フッター ── */
   footer {
-    background-color: #0a0806;
+    background-color: var(--bg-footer);
     padding: 32px 24px;
     text-align: center;
-    border-top: 1px solid #1e1608;
+    border-top: 1px solid var(--border-faint);
   }
 
   .footer-name {
     font-size: 0.85rem;
-    color: #c87a30;
+    color: var(--accent-label);
     letter-spacing: 0.22em;
     margin-bottom: 8px;
   }
 
   .footer-copy {
     font-size: 0.65rem;
-    color: #403020;
+    color: var(--text-copyright);
     letter-spacing: 0.1em;
   }
 
   .footer-note {
     font-size: 0.7rem;
-    color: #706050;
+    color: var(--text-dim);
     letter-spacing: 0.1em;
     margin-bottom: 10px;
   }
@@ -454,13 +512,13 @@
 <!-- ━━━━━━━━━━━━━━━━━━━━━━━━
   1. ファーストビュー
 ━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<section id="hero">
+<section id="hero" data-section="hero">
   <div class="hero-photo">
     <!-- 写真差し替え位置：店の外観または夜の暖簾 -->
     <div class="photo-slot" data-slot="hero"><span>店の外観・暖簾</span></div>
   </div>
   <div class="hero-overlay">
-    <span class="hero-store-name">炭火焼鳥　とり喜</span>
+    <span class="hero-store-name">炭火焼鳥　とりき</span>
     <h1 class="hero-catch">
       <span>ひとりで入れる、</span>
       <span>ひとりのペースで飲める。</span>
@@ -475,7 +533,7 @@
 <!-- ━━━━━━━━━━━━━━━━━━━━━━━━
   2. 共感
 ━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<section id="empathy" class="section">
+<section id="empathy" class="section" data-section="empathy">
   <span class="section-label">こんな夜、ありませんか</span>
   <hr class="ember-rule">
   <ul class="empathy-list">
@@ -486,14 +544,14 @@
   <p class="empathy-answer">
     仕事帰りに静かに飲みたいだけなのに、<br>
     それが意外と難しい。<br><br>
-    <em>とり喜は、そういう夜のための店です。</em>
+    <em>とりきは、そういう夜のための店です。</em>
   </p>
 </section>
 
 <!-- ━━━━━━━━━━━━━━━━━━━━━━━━
   3. 店主・About
 ━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<section id="about" class="section">
+<section id="about" class="section" data-section="about">
   <span class="section-label">About</span>
   <hr class="ember-rule">
   <h2>顔を覚えていたいから、<br>カウンター8席にした。</h2>
@@ -518,7 +576,7 @@
 <!-- ━━━━━━━━━━━━━━━━━━━━━━━━
   4. こだわり
 ━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<section id="craft" class="section">
+<section id="craft" class="section" data-section="craft">
   <span class="section-label">こだわり</span>
   <hr class="ember-rule">
   <h2>手間を省けば、<br>必ずどこかに出る。</h2>
@@ -546,7 +604,7 @@
 <!-- ━━━━━━━━━━━━━━━━━━━━━━━━
   5. 名物・おすすめ
 ━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<section id="menu" class="section">
+<section id="menu" class="section" data-section="menu">
   <span class="section-label">名物</span>
   <hr class="ember-rule">
   <h2>常連さんが必ず頼む、<br>一本があります。</h2>
@@ -573,7 +631,7 @@
 <!-- ━━━━━━━━━━━━━━━━━━━━━━━━
   6. お客様の声
 ━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<section id="voice" class="section">
+<section id="voice" class="section" data-section="voice">
   <span class="section-label">お客様の声</span>
   <hr class="ember-rule">
   <h2>実際に、こう言われます。</h2>
@@ -602,7 +660,7 @@
 <!-- ━━━━━━━━━━━━━━━━━━━━━━━━
   店舗情報
 ━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<section id="info" class="section">
+<section id="info" class="section" data-section="info">
   <span class="section-label">店舗情報</span>
   <hr class="ember-rule">
   <h2>カウンター8席の、<br>小さな店です。</h2>
@@ -610,7 +668,7 @@
   <dl class="info-list">
     <div>
       <dt>店名</dt>
-      <dd>炭火焼鳥　とり喜</dd>
+      <dd>炭火焼鳥　とりき</dd>
     </div>
     <div>
       <dt>住所</dt>
@@ -642,7 +700,7 @@
 <!-- ━━━━━━━━━━━━━━━━━━━━━━━━
   7. CTA
 ━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<section id="cta">
+<section id="cta" data-section="cta">
   <p class="cta-catch">今夜、一人でどうぞ。</p>
   <p class="cta-sub">カウンター8席のため、<br>ご予約をおすすめしています。</p>
   <span class="cta-btn" role="button" aria-disabled="true">今すぐ予約・相談する</span>
@@ -652,11 +710,11 @@
 <!-- ━━━━━━━━━━━━━━━━━━━━━━━━
   8. フッター
 ━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<footer>
-  <p class="footer-name">炭火焼鳥　とり喜（架空店舗）</p>
+<footer data-section="footer">
+  <p class="footer-name">炭火焼鳥　とりき（架空店舗）</p>
   <p class="footer-note">制作サンプル｜実在の店舗ではありません</p>
   <p class="footer-note">掲載の店舗情報・お客様の声はすべて架空のものです。ボタンは動作しません。</p>
-  <p class="footer-copy">&copy; 炭火焼鳥 とり喜 All rights reserved.</p>
+  <p class="footer-copy">&copy; 炭火焼鳥 とりき All rights reserved.</p>
 </footer>
 
 </body>
