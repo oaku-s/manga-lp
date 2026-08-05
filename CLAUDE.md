@@ -19,7 +19,7 @@
 - 制作サンプルは manga-lp-gyvq にのみ存在する：
   - https://manga-lp-gyvq.vercel.app/samples/normal/ （通常版）
   - https://manga-lp-gyvq.vercel.app/samples/leadgen/ （リード獲得版）
-  - https://manga-lp-gyvq.vercel.app/samples/recruiting/ （求人版）
+  - https://manga-lp-gyvq.vercel.app/samples/recruiting/ （求人版・旧仕様。ファイルは残しているが `monitor/` からはリンクしていない）
 - manga-lp-eight.vercel.app と manga-lp-sample.vercel.app では `/samples/...` は 404 になる。
 
 ## 役割分担
