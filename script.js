@@ -91,6 +91,41 @@ const SPECIFICITY_RULES = `## 具体性のルール（最優先・厳守）
 - 営業時間、定休日、住所、電話番号、予約の要否、席数、価格など、入力にない店舗情報は創作しない。◯◯ のようなプレースホルダにする
 - お客様の声に、入力にない年齢・性別・職業などの属性を付けない。入力された言葉のみを使う`;
 
+// 納品後に手で直せる形にするためのHTML/CSS要件。漫画LP・通常LPの両方の生成プロンプトで使う
+const MARKUP_RULES = `## HTML出力の必須要件（厳守）
+
+### 色とフォントはすべてCSS変数にする
+- 色コード（#xxxxxx、rgb()、rgba() など）と font-family は、すべて :root 内のCSS変数として定義する
+- :root より下のCSSには、色とフォントを直接書かない。var(--〇〇) の参照だけを書く
+- linear-gradient、box-shadow、border の中で使う色も同じ。変数を参照する
+- 変数名は用途が分かる名前にする（--bg、--text、--accent、--font-base など）。--color1、--c2 のような通し番号は使わない
+- 同じ色値でも用途が違うなら、必ず別の変数に分ける。あとから片方だけ変えられるようにするため
+  - 例：セクション背景と罫線が同じ色でも、--bg-slot と --border に分ける
+  - 例：見出しと本文中の強調が同じ色でも、--text-heading と --text-emphasis に分ける
+  - 例：アクセント色をラベル・罫線・ボタンの塗りに使うなら、--accent-label、--accent-line、--accent-fill に分け、既定値は var(--accent) を参照させる
+- 各変数の行末に、何を制御しているかの短いコメントを日本語で入れる
+- セクションごとに色を変える場合も、その色をいったん :root の変数として定義してから参照する。1箇所でしか使わない色でも直接書かない
+- 出力する前に、:root より下に # で始まる色コードや rgb()／rgba() が1つも残っていないか確認する。残っていたら :root に用途名の変数を足して置き換える
+
+書き方の例。
+
+禁止（色コードを直接書いている）
+.hero-sub { color: #b8c8d0; }
+[data-section="about"] .photo-slot { background-color: #233040; }
+
+正しい（:root に用途名で定義してから参照する）
+:root {
+  --text-hero-sub: #b8c8d0;   /* heroのサブコピー */
+  --bg-slot-about: #233040;   /* 店主セクションの写真枠の背景 */
+}
+.hero-sub { color: var(--text-hero-sub); }
+[data-section="about"] .photo-slot { background-color: var(--bg-slot-about); }
+
+### 各セクションに識別子を付ける
+- セクションの要素に data-section 属性を付ける（例：<section data-section="hero">）
+- 値はそのセクションを表す英小文字にする（hero、empathy、about、craft、menu、voice、info、cta、footer など）
+- ページ内のすべてのセクションに付ける。フッターにも付ける`;
+
 // MarkdownをHTMLに変換
 function markdownToHtml(text) {
   const lines = text.split("\n");
@@ -465,6 +500,8 @@ ${SPECIFICITY_RULES}
 - JavaScriptは不要
 - max-width:480px、背景ダーク系
 
+${MARKUP_RULES}
+
 ## セクション構成（この順番・この数だけ）
 1. HERO：キャッチコピー＋サブコピー
 2. キャラクター紹介：${char}の一言紹介
@@ -483,13 +520,13 @@ ${SPECIFICITY_RULES}
 .koma-strip {
   display: flex;
   flex-direction: column;
-  border: 3px solid #2e1f0e;
+  border: 3px solid var(--koma-border);
   border-radius: 8px;
   overflow: hidden;
 }
 .koma-box {
   min-height: 320px;
-  border-bottom: 3px solid #2e1f0e;
+  border-bottom: 3px solid var(--koma-border);
   display: flex;
   flex-direction: column;
 }
@@ -498,14 +535,17 @@ ${SPECIFICITY_RULES}
 }
 .koma-illust {
   min-height: 220px;
-  background: #ccc;
+  background: var(--koma-illust-bg);
 }
 .koma-serif {
   width: 100%;
   padding: 8px;
-  background: #fff;
+  background: var(--koma-serif-bg);
+  color: var(--koma-serif-text);
   font-size: 0.9rem;
 }
+
+- --koma-border、--koma-illust-bg、--koma-serif-bg、--koma-serif-text も :root に定義する。値はそのLPの配色に合わせて決める（灰色一色の空き枠にしない）
 
 - HTMLは以下の構造で出力すること（コマ数=4、セリフはヒアリング内容に沿って作成）
 
@@ -527,6 +567,11 @@ ${SPECIFICITY_RULES}
     <div class="koma-serif">（コマ4のセリフ）</div>
   </div>
 </div>
+
+## 最後の確認
+出力する直前に、次の2点をCSS全体に対して確認すること。
+1. :root より下の行に # で始まる色コード・rgb()・rgba() が1つも残っていないこと。1つでもあれば :root に用途名の変数を追加し、var() 参照に置き換えてから出力する
+2. すべてのセクション要素（footerを含む）に data-section 属性が付いていること
 
 HTMLのみ出力してください。説明文・コードブロック記号(\`\`\`)は不要です。`;
 }
@@ -597,6 +642,8 @@ ${SPECIFICITY_RULES}
 - max-width:480px、スマートフォンでの閲覧を前提にする
 - HTMLのみ出力する。説明文・コードブロック記号(\`\`\`)は不要
 
+${MARKUP_RULES}
+
 ## セクション構成（この順番・この数だけ。追加も削除もしない）
 ${sectionList}
 
@@ -619,7 +666,7 @@ ${sectionList}
 <!-- 写真差し替え位置：（何の写真を入れるか） -->
 <div class="photo-slot" data-slot="hero"><span>店の外観</span></div>
 
-- 以下のCSSをstyleタグに含める。背景色と文字色は、そのLPの配色に合わせた同系色にすること（灰色一色の空き枠にしない）
+- 以下のCSSをstyleタグに含める。背景色と文字色は、そのLPの配色に合わせた同系色にすること（灰色一色の空き枠にしない）。色は :root に定義した変数で指定する
 
 .photo-slot {
   display: flex;
@@ -632,7 +679,12 @@ ${sectionList}
 
 - 枠の中央には、そこに入る写真の内容を短いラベルとして表示する
 - 写真が1枚も入っていない状態でも、文章だけで意味が通り、余白が破綻しないようにする
-- 「写真をご覧ください」のように、画像がないと成立しない文章を書かない`;
+- 「写真をご覧ください」のように、画像がないと成立しない文章を書かない
+
+## 最後の確認
+出力する直前に、次の2点をCSS全体に対して確認すること。
+1. :root より下の行に # で始まる色コード・rgb()・rgba() が1つも残っていないこと。1つでもあれば :root に用途名の変数を追加し、var() 参照に置き換えてから出力する
+2. すべてのセクション要素（footerを含む）に data-section 属性が付いていること`;
 }
 
 // ── Canvas合成：生成済み画像にセリフ吹き出しを焼き込む ─────────────────────────────────
