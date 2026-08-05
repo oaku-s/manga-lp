@@ -340,6 +340,12 @@ h3 {
   margin: 16px 0 0;
 }
 
+.sample-note {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
 .sample-copy .button {
   margin-top: 22px;
 }
@@ -718,6 +724,15 @@ h3 {
 
   .sample-card {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* サンプルが1枚だけのときは、半分の幅に取り残されないよう
+     横幅いっぱいを使い、コピーとプレビューを横並びに戻す。
+     カードを2枚目以降に追加すると、自動的に上の2カラムに戻る。 */
+  .sample-card:only-child {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+    align-items: center;
   }
 }
 
