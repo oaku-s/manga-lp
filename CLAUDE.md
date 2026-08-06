@@ -18,6 +18,7 @@
 - `main` にpushしたあとの反映確認は **manga-lp-gyvq.vercel.app** で行う。
 - 制作サンプルは manga-lp-gyvq にのみ存在する：
   - https://manga-lp-gyvq.vercel.app/samples/normal/ （通常版）
+  - https://manga-lp-gyvq.vercel.app/samples/manga/ （4コマ漫画版。画像は `media/` に分離）
   - https://manga-lp-gyvq.vercel.app/samples/leadgen/ （リード獲得版）
   - https://manga-lp-gyvq.vercel.app/samples/recruiting/ （求人版・旧仕様。ファイルは残しているが `monitor/` からはリンクしていない）
 - manga-lp-eight.vercel.app と manga-lp-sample.vercel.app では `/samples/...` は 404 になる。

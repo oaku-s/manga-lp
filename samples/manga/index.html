@@ -1,0 +1,587 @@
+﻿<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>炭火焼鳥 とりき</title>
+<style>
+/* ══════════════════════════════════════════
+   デザイン変数
+   色とフォントはすべてここで定義しています。
+   以降のCSSは var(--〇〇) を参照するだけなので、
+   見た目を変えたいときはこのブロックだけを直します。
+   ══════════════════════════════════════════ */
+:root {
+  /* ── フォント ── */
+  --font-base: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  --font-quote: Georgia, serif;   /* お客様の声の引用符「"」 */
+
+  /* ── 基本の色（まずここを見る） ── */
+  --bg: #1a1410;              /* ページ全体の背景 */
+  --text: #f0e6d3;            /* 基本の文字色 */
+  --accent: #c8601a;          /* アクセント＝炭火のオレンジ */
+  --accent-bright: #e07820;   /* 明るいアクセント（ボタンのグラデ終端） */
+
+  /* ── 背景のバリエーション ── */
+  --bg-card: #231810;         /* カード：店主 / 理由 / お客様の声 / 店舗情報 */
+  --bg-koma: #2a1c0e;         /* コマの下地（画像が入る前に見える色） */
+  --bg-serif: #fff;           /* セリフ欄の背景 */
+  --bg-footer: #100d09;       /* フッターの背景 */
+
+  /* ── グラデーション ── */
+  --hero-grad-start: #1a1410; /* heroグラデの開始 */
+  --hero-grad-mid: #2e1a08;   /* heroグラデの中間 */
+  --hero-grad-end: #4a2c10;   /* heroグラデの終端 */
+  --cta-grad-start: #1a1410;  /* CTAグラデの開始 */
+  --cta-grad-end: #2e1a08;    /* CTAグラデの終端 */
+
+  /* ── 文字色のバリエーション ── */
+  --text-heading: #f5ddb4;    /* 見出し：heroキャッチ / 店主名 / 理由 / 店名 */
+  --text-voice: #f5ddb4;      /* お客様の声の本文 */
+  --text-sub: #c8a882;        /* 補足・説明文 */
+  --text-faint: #7a5c40;      /* 薄い注記：話者名 / 声の出典 / CTA注記 */
+  --text-copyright: #4a3828;  /* コピーライト */
+  --text-info: #f0e6d3;       /* 店舗情報の値 */
+  --text-on-serif: #1a1410;   /* セリフ欄（白背景）の上の文字 */
+  --on-accent: #fff;          /* アクセント色の上に乗る文字（ボタン） */
+
+  /* ── 罫線 ── */
+  --border: #2e1f0e;          /* セクション区切り・カードの枠 */
+  --koma-border: #2e1f0e;     /* 4コマの外枠とコマ間の仕切り（太い構造線） */
+
+  /* ── 影 ── */
+  --shadow-hero-text: rgba(0,0,0,0.7);    /* heroキャッチの文字影 */
+  --shadow-cta-btn: rgba(200,96,26,0.4);  /* CTAボタンの影 */
+
+  /* ── アクセントの用途別 ──
+     すべて --accent を参照しています。
+     「ボタンだけ別の色にしたい」といった場合は、
+     ここの1行を色コードに書き換えれば、その用途だけが変わります。 */
+  --accent-label: var(--accent);  /* ラベル文字：hero / 各セクション見出し / コマ番号 / 項目名 */
+  --accent-line: var(--accent);   /* 罫線：hero下辺 / 理由カードの左帯 */
+  --accent-quote: var(--accent);  /* お客様の声の引用符 */
+  --accent-fill: var(--accent);   /* 塗り：CTAボタンのグラデ開始 */
+
+  /* ── 差し込み画像用（現在このLPでは未使用の枠） ── */
+  --profile-hero-border: rgba(126,232,200,0.8);
+  --profile-hero-shadow: rgba(0,0,0,0.3);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-base);
+  max-width: 480px;
+  margin: 0 auto;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* HERO */
+.hero {
+  background: linear-gradient(160deg, var(--hero-grad-start) 0%, var(--hero-grad-mid) 60%, var(--hero-grad-end) 100%);
+  padding: 60px 24px 48px;
+  text-align: center;
+  border-bottom: 2px solid var(--accent-line);
+}
+.hero-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  color: var(--accent-label);
+  margin-bottom: 16px;
+}
+.hero-catch {
+  font-size: 1.7rem;
+  font-weight: bold;
+  line-height: 1.5;
+  color: var(--text-heading);
+  margin-bottom: 20px;
+  text-shadow: 0 2px 8px var(--shadow-hero-text);
+}
+.hero-sub {
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  line-height: 1.9;
+}
+.hero-ember {
+  font-size: 2rem;
+  margin-top: 24px;
+  letter-spacing: 0.3em;
+}
+
+/* CHARACTER */
+.section {
+  padding: 40px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.section-title {
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  color: var(--accent-label);
+  margin-bottom: 20px;
+  text-align: center;
+}
+.chara-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 24px 20px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.chara-icon {
+  font-size: 3.5rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.chara-body {}
+.chara-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--text-heading);
+  margin-bottom: 4px;
+}
+.chara-role {
+  font-size: 0.75rem;
+  color: var(--accent-label);
+  margin-bottom: 10px;
+  letter-spacing: 0.1em;
+}
+.chara-text {
+  font-size: 0.85rem;
+  color: var(--text-sub);
+  line-height: 1.8;
+}
+
+/* 4KOMA */
+.koma-section {
+  padding: 40px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.koma-section-title {
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  color: var(--accent-label);
+  margin-bottom: 20px;
+  text-align: center;
+}
+.koma-strip {
+  display: flex;
+  flex-direction: column;
+  border: 3px solid var(--koma-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.koma-box {
+  min-height: 320px;
+  border-bottom: 3px solid var(--koma-border);
+  display: flex;
+  flex-direction: column;
+}
+.koma-box:last-child {
+  border-bottom: none;
+}
+.koma-illust {
+  min-height: 220px;
+  background: var(--bg-koma);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  position: relative;
+}
+.koma-num {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  font-size: 0.7rem;
+  color: var(--accent-label);
+  font-weight: bold;
+  letter-spacing: 0.1em;
+}
+.koma-emoji {
+  font-size: 4rem;
+  line-height: 1;
+}
+.koma-scene {
+  font-size: 0.7rem;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+.koma-serif {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg-serif);
+  font-size: 0.9rem;
+  color: var(--text-on-serif);
+  line-height: 1.7;
+  font-family: var(--font-base);
+}
+.koma-serif .speaker {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  display: block;
+  margin-bottom: 2px;
+}
+.koma-serif .line {
+  font-size: 0.92rem;
+  color: var(--text-on-serif);
+}
+
+/* REASONS */
+.reasons-section {
+  padding: 40px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.reason-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent-line);
+  border-radius: 0 6px 6px 0;
+  padding: 18px 16px;
+  margin-bottom: 16px;
+}
+.reason-item:last-child {
+  margin-bottom: 0;
+}
+.reason-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.reason-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+.reason-title {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: var(--text-heading);
+  line-height: 1.4;
+}
+.reason-body {
+  font-size: 0.83rem;
+  color: var(--text-sub);
+  line-height: 1.85;
+  padding-left: 0;
+}
+
+/* VOICE */
+.voice-section {
+  padding: 40px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.voice-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 18px;
+  margin-bottom: 16px;
+  position: relative;
+}
+.voice-card:last-child {
+  margin-bottom: 0;
+}
+.voice-quote-mark {
+  font-size: 2.5rem;
+  color: var(--accent-quote);
+  line-height: 0.8;
+  margin-bottom: 8px;
+  font-family: var(--font-quote);
+}
+.voice-text {
+  font-size: 0.9rem;
+  color: var(--text-voice);
+  line-height: 1.85;
+  font-style: italic;
+}
+.voice-from {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  margin-top: 12px;
+  text-align: right;
+}
+
+/* CTA */
+.cta-section {
+  padding: 48px 20px;
+  text-align: center;
+  background: linear-gradient(180deg, var(--cta-grad-start) 0%, var(--cta-grad-end) 100%);
+  border-bottom: 1px solid var(--border);
+}
+.cta-lead {
+  font-size: 0.85rem;
+  color: var(--text-sub);
+  margin-bottom: 24px;
+  line-height: 1.9;
+}
+.cta-btn {
+  display: block;
+  background: linear-gradient(135deg, var(--accent-fill) 0%, var(--accent-bright) 100%);
+  color: var(--on-accent);
+  font-size: 1rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  padding: 18px 16px;
+  border-radius: 4px;
+  border: none;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 4px 16px var(--shadow-cta-btn);
+  cursor: pointer;
+}
+.cta-note {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  margin-top: 14px;
+  line-height: 1.7;
+}
+.cta-info {
+  margin-top: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  font-size: 0.83rem;
+  color: var(--text-sub);
+  line-height: 2;
+  text-align: left;
+}
+.cta-info dt {
+  color: var(--accent-label);
+  font-weight: bold;
+  float: left;
+  width: 5em;
+  clear: left;
+}
+.cta-info dd {
+  margin-left: 5.5em;
+  color: var(--text-info);
+}
+
+/* FOOTER */
+footer {
+  padding: 28px 20px;
+  text-align: center;
+  background: var(--bg-footer);
+}
+.footer-name {
+  font-size: 1rem;
+  color: var(--text-heading);
+  letter-spacing: 0.2em;
+  margin-bottom: 6px;
+}
+.footer-copy {
+  font-size: 0.7rem;
+  color: var(--text-copyright);
+  letter-spacing: 0.1em;
+}
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+.koma-illust { overflow: hidden; }
+.koma-generated-image { display: block; width: 100%; height: auto; }
+.lp-profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.lp-profile-hero {
+  width: 180px;
+  height: 220px;
+  margin: 0 auto 20px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 3px solid var(--profile-hero-border);
+  box-shadow: 0 8px 24px var(--profile-hero-shadow);
+}
+</style>
+</head>
+<body>
+
+<!-- 1. HERO -->
+<section class="hero" data-section="hero">
+  <p class="hero-label">炭火焼鳥 とりき</p>
+  <h1 class="hero-catch">仕事帰りの一杯、<br>ここでいい。</h1>
+  <p class="hero-sub">
+    騒がしくない。気まずくない。<br>
+    大将は、こっちのペースを分かってくれてる。<br>
+    カウンター8席、朝引きの地鶏、備長炭。
+  </p>
+  <div class="hero-ember">🔥</div>
+</section>
+
+<hr class="divider">
+
+<!-- 2. キャラクター紹介 -->
+<section class="section" data-section="character">
+  <p class="section-title">MASTER</p>
+  <div class="chara-card">
+    <div class="chara-icon">👨‍🍳</div>
+    <div class="chara-body">
+      <p class="chara-name">大将（40代）</p>
+      <p class="chara-role">白い作業着と手ぬぐい</p>
+      <p class="chara-text">
+        都内の老舗で修業し、この街に店を構えた。<br>
+        寡黙だが、面倒見がいい。<br>
+        「顔を覚えていたいから、カウンター8席にした」——それだけを言う。
+      </p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- 3. 縦4コマ漫画 -->
+<section class="koma-section" data-section="comic">
+  <p class="koma-section-title">COMIC</p>
+  <div class="koma-strip">
+
+    <div class="koma-box">
+      <div class="koma-illust koma-illust-with-image"><span class="koma-num">1</span><img src="media/koma-01.jpg" alt="1コマ目" class="koma-generated-image"></div>
+      <div class="koma-serif" style="display: none;">
+        <span class="speaker">会社員（心の声）</span>
+        <span class="line">「チェーン店は騒がしいし……一人だと入りにくいし……どこで飲めばいいんだ」</span>
+      </div>
+    </div>
+
+    <div class="koma-box">
+      <div class="koma-illust koma-illust-with-image"><span class="koma-num">2</span><img src="media/koma-02.jpg" alt="2コマ目" class="koma-generated-image"></div>
+      <div class="koma-serif" style="display: none;">
+        <span class="speaker">会社員（心の声）</span>
+        <span class="line">「カウンターだけの店か……。一人でも、入れるかな」</span>
+      </div>
+    </div>
+
+    <div class="koma-box">
+      <div class="koma-illust koma-illust-with-image"><span class="koma-num">3</span><img src="media/koma-03.jpg" alt="3コマ目" class="koma-generated-image"></div>
+      <div class="koma-serif" style="display: none;">
+        <span class="speaker">大将</span>
+        <span class="line">「つくね、どうぞ。黄身にくぐらせて食べてみてください」</span>
+      </div>
+    </div>
+
+    <div class="koma-box">
+      <div class="koma-illust koma-illust-with-image"><span class="koma-num">4</span><img src="media/koma-04.jpg" alt="4コマ目" class="koma-generated-image"></div>
+      <div class="koma-serif" style="display: none;">
+        <span class="speaker">会社員（心の声）</span>
+        <span class="line">「ひとりでも気まずくない。大将がこっちのペースを分かってくれてる——ここでいい」</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- 4. 選ばれる3つの理由 -->
+<section class="reasons-section" data-section="reason">
+  <p class="section-title">REASON</p>
+
+  <div class="reason-item">
+    <div class="reason-head">
+      <span class="reason-icon">🐔</span>
+      <p class="reason-title">契約農家から、朝引きの地鶏だけを毎日仕入れる</p>
+    </div>
+    <p class="reason-body">
+      「新鮮ならいい」では終わらない。契約農家との関係があるから、毎朝その日の分だけが届く。冷凍も、前日仕込みの在庫もない。
+    </p>
+  </div>
+
+  <div class="reason-item">
+    <div class="reason-head">
+      <span class="reason-icon">🔥</span>
+      <p class="reason-title">備長炭で、一本ずつ焼き加減を見ながら焼く</p>
+    </div>
+    <p class="reason-body">
+      タイマーも温度計も頼らない。目と手と経験で、一本ずつ向き合う。都内の老舗で積み上げた時間が、この炭火の前に立っている。
+    </p>
+  </div>
+
+  <div class="reason-item">
+    <div class="reason-head">
+      <span class="reason-icon">🪑</span>
+      <p class="reason-title">カウンター8席。顔を覚えていたいから、それだけにした</p>
+    </div>
+    <p class="reason-body">
+      席を増やせば売上は上がる。それでも8席を選んだのは「顔を覚えていたいから」。一人で来ても、急かされることはない。
+    </p>
+  </div>
+
+</section>
+
+<hr class="divider">
+
+<!-- 5. お客様の声 -->
+<section class="voice-section" data-section="voice">
+  <p class="section-title">VOICE</p>
+
+  <div class="voice-card">
+    <div class="voice-quote-mark">"</div>
+    <p class="voice-text">ひとりでも気まずくない。大将がこっちのペースを分かってくれてる。</p>
+    <p class="voice-from">— お客さんによく言われる言葉</p>
+  </div>
+
+  <div class="voice-card">
+    <div class="voice-quote-mark">"</div>
+    <p class="voice-text">ひとり飲みデビューがこの店だった。今は週一で通っている。</p>
+    <p class="voice-from">— 常連のお客さん</p>
+  </div>
+
+</section>
+
+<hr class="divider">
+
+<!-- 6. CTA -->
+<section class="cta-section" data-section="cta">
+  <p class="cta-lead">
+    今夜、仕事帰りに寄ってみませんか。<br>
+    一人でも、予約なしでも、ご相談ください。
+  </p>
+  <a href="tel:○○○○-○○-○○○○" class="cta-btn">今すぐ予約・相談する</a>
+  <p class="cta-note">
+    お電話またはご来店にてお気軽にどうぞ。<br>
+    一人客大歓迎です。
+  </p>
+  <dl class="cta-info">
+    <dt>住所</dt>
+    <dd>○○○○</dd>
+    <dt>電話</dt>
+    <dd>○○○○-○○-○○○○</dd>
+    <dt>営業時間</dt>
+    <dd>○○：○○ 〜 ○○：○○</dd>
+    <dt>定休日</dt>
+    <dd>○曜日</dd>
+    <dt>席数</dt>
+    <dd>カウンター8席</dd>
+  </dl>
+</section>
+
+<hr class="divider">
+
+<!-- 7. フッター -->
+<footer data-section="footer">
+  <p class="footer-name">炭火焼鳥 とりき</p>
+  <p class="footer-copy">© 炭火焼鳥 とりき All rights reserved.</p>
+</footer>
+
+
+</body></html>
