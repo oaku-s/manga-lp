@@ -340,12 +340,6 @@ h3 {
   margin: 16px 0 0;
 }
 
-.sample-note {
-  margin: 18px 0 0;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
 .sample-copy .button {
   margin-top: 22px;
 }

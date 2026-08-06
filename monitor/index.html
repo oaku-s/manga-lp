@@ -79,7 +79,6 @@
         <h2>制作サンプル</h2>
       </div>
       <div class="sample-grid">
-        <!-- 4コマ漫画版のサンプルができたら、この形式のカードをもう1枚追加する -->
         <article class="sample-card">
           <div class="sample-copy">
             <p class="sample-type">集客LP／通常版</p>
@@ -90,13 +89,26 @@
             <a class="button secondary" href="../samples/normal/">集客LPを見る</a>
           </div>
           <div class="phone-frame" aria-label="集客LPのスマホプレビュー">
-            <iframe src="../samples/normal/" title="集客LPサンプル" loading="lazy"></iframe>
+            <!-- iframe内のテキストは、iframeを表示できない環境でのみ出る代替表示。
+                 空にしておくと、環境によっては src の生パスがそのまま出てしまう -->
+            <iframe src="../samples/normal/" title="集客LPサンプル" loading="lazy">プレビューを表示できない環境です。上の「集客LPを見る」からご覧ください。</iframe>
+          </div>
+        </article>
+
+        <article class="sample-card">
+          <div class="sample-copy">
+            <p class="sample-type">集客LP／4コマ漫画版</p>
+            <h3>読む前に、店の空気が伝わる</h3>
+            <p>
+              文章を読み始める前に、店の雰囲気とお客さんの体験が絵で伝わります。文字だけでは届きにくい店の空気を、4コマで先に見せます。
+            </p>
+            <a class="button secondary" href="../samples/manga/">4コマ漫画版を見る</a>
+          </div>
+          <div class="phone-frame" aria-label="4コマ漫画版LPのスマホプレビュー">
+            <iframe src="../samples/manga/" title="4コマ漫画版LPサンプル" loading="lazy">プレビューを表示できない環境です。上の「4コマ漫画版を見る」からご覧ください。</iframe>
           </div>
         </article>
       </div>
-      <p class="sample-note">
-        4コマ漫画を使った構成にも対応しています。漫画版のサンプルは近日公開予定です。
-      </p>
     </section>
 
     <section class="section about">
