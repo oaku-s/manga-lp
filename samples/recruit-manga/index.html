@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>炭火焼鳥 とりき｜スタッフ募集｜制作サンプル</title>
+<style>
+:root {
+  --bg-base: #1a1a1a;                /* ページ全体の背景 */
+  --bg-section-alt: #212121;         /* 交互セクションの背景 */
+  --bg-section-dark: #161616;        /* 暗めセクションの背景 */
+  --bg-hero: #1c1410;                /* ヒーローセクションの背景 */
+  --bg-card: #262216;                /* カード・吹き出し背景 */
+  --bg-character: #1e1a14;           /* キャラクター紹介セクション背景 */
+  --bg-photo-slot: #2a2018;          /* 写真枠の背景 */
+  --bg-cta: #1c1410;                 /* CTAセクション背景 */
+  --bg-footer: #111111;              /* フッター背景 */
+  --bg-badge: #2e1f0a;               /* バッジ・ラベル背景 */
+  --text-base: #e8ddd0;              /* 本文テキスト */
+  --text-heading: #f5a623;           /* 見出しテキスト */
+  --text-emphasis: #f5a623;          /* 本文中の強調テキスト */
+  --text-sub: #b0a090;               /* サブテキスト・補足 */
+  --text-hero-main: #f7f0e6;         /* ヒーローメインコピー */
+  --text-hero-sub: #c8b89a;          /* ヒーローサブコピー */
+  --text-character: #e8ddd0;         /* キャラクター紹介テキスト */
+  --text-badge: #f5a623;             /* バッジのテキスト */
+  --text-cta-heading: #f7f0e6;       /* CTAの見出し */
+  --text-footer: #8a7a6a;            /* フッターテキスト */
+  --accent: #e8821a;                 /* メインアクセント（炭火オレンジ） */
+  --accent-label: #e8821a;           /* ラベルのアクセント */
+  --accent-line: #c06010;            /* 罫線のアクセント */
+  --accent-fill: #d97318;            /* ボタン塗りのアクセント */
+  --accent-fill-hover: #c06010;      /* ボタンホバー時の塗り */
+  --border-section: #3a2e20;         /* セクション区切り線 */
+  --border-card: #3e3020;            /* カード枠線 */
+  --border-badge: #6a4a1a;           /* バッジ枠線 */
+  --koma-border: #4a3820;            /* コマの枠線 */
+  --koma-illust-bg: #2a1e10;         /* コマの絵エリア背景 */
+  --koma-serif-bg: #1e160a;          /* コマのセリフエリア背景 */
+  --koma-serif-text: #e8ddd0;        /* コマのセリフテキスト */
+  --shadow-card: rgba(0,0,0,0.5);    /* カードの影 */
+  --profile-hero-border: rgba(126,232,200,0.8); /* 差し込み画像枠の枠線（このLPでは未使用） */
+  --profile-hero-shadow: rgba(0,0,0,0.3);       /* 差し込み画像枠の影（このLPでは未使用） */
+  --font-base: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; /* 本文フォント */
+  --font-heading: 'Hiragino Mincho ProN', 'Noto Serif JP', serif;       /* 見出しフォント */
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-base);
+  font-family: var(--font-base);
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ===== HERO ===== */
+[data-section="hero"] {
+  background: var(--bg-hero);
+  padding: 60px 24px 52px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-section);
+  position: relative;
+}
+
+.hero-label {
+  display: inline-block;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  color: var(--text-badge);
+  background: var(--bg-badge);
+  border: 1px solid var(--border-badge);
+  padding: 4px 14px;
+  border-radius: 2px;
+  margin-bottom: 22px;
+  font-family: var(--font-base);
+}
+
+.hero-main {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-hero-main);
+  line-height: 1.5;
+  margin-bottom: 20px;
+  letter-spacing: 0.05em;
+}
+
+.hero-main span {
+  color: var(--text-heading);
+}
+
+.hero-sub {
+  font-size: 0.88rem;
+  color: var(--text-hero-sub);
+  line-height: 1.8;
+}
+
+.hero-divider {
+  width: 40px;
+  height: 2px;
+  background: var(--accent-line);
+  margin: 24px auto 0;
+}
+
+/* ===== CHARACTER ===== */
+[data-section="character"] {
+  background: var(--bg-character);
+  padding: 44px 24px;
+  border-bottom: 1px solid var(--border-section);
+}
+
+.section-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--accent-label);
+  margin-bottom: 8px;
+  font-family: var(--font-base);
+}
+
+.section-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  color: var(--text-heading);
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+.character-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.character-photo {
+  width: 120px;
+  height: 120px;
+  background: var(--bg-photo-slot);
+  border-radius: 50%;
+  border: 2px solid var(--accent-line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+
+.character-body {
+  text-align: center;
+}
+
+.character-name {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  color: var(--text-heading);
+  margin-bottom: 4px;
+}
+
+.character-role {
+  font-size: 0.78rem;
+  color: var(--text-sub);
+  margin-bottom: 14px;
+}
+
+.character-desc {
+  font-size: 0.88rem;
+  color: var(--text-character);
+  line-height: 1.8;
+  text-align: left;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.character-desc p + p {
+  margin-top: 10px;
+}
+
+/* ===== MANGA ===== */
+[data-section="manga"] {
+  background: var(--bg-section-dark);
+  padding: 44px 20px;
+  border-bottom: 1px solid var(--border-section);
+}
+
+.manga-header {
+  margin-bottom: 24px;
+}
+
+.koma-strip {
+  display: flex;
+  flex-direction: column;
+  border: 3px solid var(--koma-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.koma-box {
+  min-height: 320px;
+  border-bottom: 3px solid var(--koma-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.koma-box:last-child {
+  border-bottom: none;
+}
+
+.koma-illust {
+  min-height: 220px;
+  background: var(--koma-illust-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  flex: 1;
+}
+
+.koma-illust-inner {
+  font-size: 3.2rem;
+  line-height: 1;
+}
+
+.koma-num {
+  font-size: 0.65rem;
+  color: var(--text-sub);
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+}
+
+.koma-serif {
+  width: 100%;
+  padding: 8px;
+  background: var(--koma-serif-bg);
+  color: var(--koma-serif-text);
+  font-size: 0.9rem;
+}
+
+.koma-serif-inner {
+  padding: 6px 4px;
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+.koma-serif-inner .speaker {
+  font-size: 0.72rem;
+  color: var(--accent-label);
+  display: block;
+  margin-bottom: 4px;
+  letter-spacing: 0.05em;
+}
+
+/* セリフと区別するためのナレーション（地の文） */
+.koma-serif-inner .narration {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-sub);
+  font-size: 0.82rem;
+}
+
+/* ===== REASONS ===== */
+[data-section="reasons"] {
+  background: var(--bg-section-alt);
+  padding: 44px 24px;
+  border-bottom: 1px solid var(--border-section);
+}
+
+.reason-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 8px;
+}
+
+.reason-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-left: 3px solid var(--accent-line);
+  border-radius: 6px;
+  padding: 18px 16px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.reason-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.reason-body {}
+
+.reason-title {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  color: var(--text-heading);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.reason-text {
+  font-size: 0.85rem;
+  color: var(--text-base);
+  line-height: 1.75;
+}
+
+/* ===== VOICE ===== */
+[data-section="voice"] {
+  background: var(--bg-section-dark);
+  padding: 44px 24px;
+  border-bottom: 1px solid var(--border-section);
+}
+
+.voice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 8px;
+}
+
+.voice-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 6px;
+  padding: 20px 18px;
+}
+
+.voice-quote {
+  font-size: 1.4rem;
+  color: var(--accent-label);
+  line-height: 1;
+  margin-bottom: 6px;
+  font-family: var(--font-heading);
+}
+
+.voice-text {
+  font-size: 0.9rem;
+  color: var(--text-base);
+  line-height: 1.8;
+  font-family: var(--font-heading);
+}
+
+.voice-source {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.72rem;
+  color: var(--text-sub);
+  letter-spacing: 0.05em;
+}
+
+/* ===== CTA ===== */
+[data-section="cta"] {
+  background: var(--bg-cta);
+  padding: 52px 24px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-section);
+}
+
+.cta-heading {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  color: var(--text-cta-heading);
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.cta-sub {
+  font-size: 0.83rem;
+  color: var(--text-sub);
+  margin-bottom: 30px;
+  line-height: 1.7;
+}
+
+.cta-btn {
+  display: block;
+  width: 100%;
+  padding: 18px 0;
+  background: var(--accent-fill);
+  color: var(--text-hero-main);
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: background 0.2s;
+}
+
+.cta-btn:hover {
+  background: var(--accent-fill-hover);
+}
+
+/* サンプルのため無効化したボタン */
+.cta-btn[aria-disabled="true"],
+.cta-btn[aria-disabled="true"]:hover {
+  background: var(--accent-fill);
+  cursor: default;
+}
+
+.cta-note {
+  margin-top: 14px;
+  font-size: 0.75rem;
+  color: var(--text-sub);
+}
+
+/* ===== FOOTER ===== */
+[data-section="footer"] {
+  background: var(--bg-footer);
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.footer-name {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  color: var(--text-base);
+  margin-bottom: 8px;
+}
+
+.footer-note {
+  font-size: 0.72rem;
+  color: var(--text-sub);
+  margin-bottom: 8px;
+  line-height: 1.7;
+}
+
+.footer-copy {
+  font-size: 0.7rem;
+  color: var(--text-footer);
+}
+
+.koma-illust { overflow: hidden; }
+.koma-generated-image { display: block; width: 100%; height: auto; }
+.lp-profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.lp-profile-hero {
+  width: 180px;
+  height: 220px;
+  margin: 0 auto 20px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 3px solid var(--profile-hero-border);
+  box-shadow: 0 8px 24px var(--profile-hero-shadow);
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<section data-section="hero">
+  <p class="hero-label">STAFF WANTED｜スタッフ募集</p>
+  <h1 class="hero-main">
+    焼けるようになるまで、<br>
+    <span>待ってもらえる場所</span>があった。
+  </h1>
+  <p class="hero-sub">
+    炭火焼鳥 とりき<br>
+    カウンター8席の、小さな焼鳥屋です。
+  </p>
+  <div class="hero-divider"></div>
+</section>
+
+<!-- ===== CHARACTER ===== -->
+<section data-section="character">
+  <p class="section-label">MASTER</p>
+  <h2 class="section-title">店主について</h2>
+  <div class="character-card">
+    <div class="character-photo">🍢</div>
+    <div class="character-body">
+      <p class="character-name">大将</p>
+      <p class="character-role">40代・男性｜白い作業着と手ぬぐい</p>
+      <div class="character-desc">
+        <p>都内の老舗で修業したあと、この街に店を構えました。</p>
+        <p>「顔を覚えていたいから、カウンター8席にした」という人です。あまり多くは語りませんが、人の面倒を見ることには時間を惜しみません。</p>
+        <p>新しく入った人に最初の1ヶ月、焼き場に立たせないのは、大将が決めたルールです。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MANGA ===== -->
+<section data-section="manga">
+  <div class="manga-header">
+    <p class="section-label">COMIC</p>
+    <h2 class="section-title">縦4コマ｜とりきの1ヶ月</h2>
+  </div>
+
+  <div class="koma-strip">
+
+    <div class="koma-box">
+      <div class="koma-illust koma-illust-with-image"><span class="koma-num">1 / 4</span><img src="media/koma-01.jpg" alt="1コマ目：大型店の厨房で、疲れた顔をしている" class="koma-generated-image"></div>
+      <div class="koma-serif">
+        <div class="koma-serif-inner">
+          <span class="speaker">大型店の厨房</span>
+          「また今日も、誰とも喋らなかった」
+          <span class="narration">名前も覚えられないまま、今日も終わる。</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="koma-box">
+      <div class="koma-illust koma-illust-with-image"><span class="koma-num">2 / 4</span><img src="media/koma-02.jpg" alt="2コマ目：路地でとりきの暖簾を見つける" class="koma-generated-image"></div>
+      <div class="koma-serif">
+        <div class="koma-serif-inner">
+          <span class="speaker">帰り道の路地</span>
+          「カウンター8席か。小さい店だな」
+          <span class="narration">炭火のあかりが、なぜか目に止まった。</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="koma-box">
+      <div class="koma-illust koma-illust-with-image"><span class="koma-num">3 / 4</span><img src="media/koma-03.jpg" alt="3コマ目：大将の手元を横で見ている" class="koma-generated-image"></div>
+      <div class="koma-serif">
+        <div class="koma-serif-inner">
+          <span class="speaker">大将の手元を、横で見る</span>
+          大将「最初の1ヶ月は、焼き場には立たせない」<br>
+          大将「まず横で見ててくれ」
+          <span class="narration">（怒られると思ってたのに）</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="koma-box">
+      <div class="koma-illust koma-illust-with-image"><span class="koma-num">4 / 4</span><img src="media/koma-04.jpg" alt="4コマ目：閉店後のカウンターに座っている" class="koma-generated-image"></div>
+      <div class="koma-serif">
+        <div class="koma-serif-inner">
+          <span class="speaker">閉店後のカウンター</span>
+          「焼けるようになるまで、待ってもらえる場所がある」
+          <span class="narration">手に職をつける、ということの意味が少しわかった気がした。</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== REASONS ===== -->
+<section data-section="reasons">
+  <p class="section-label">REASON</p>
+  <h2 class="section-title">この職場が選ばれる<br>3つの理由</h2>
+
+  <div class="reason-list">
+
+    <div class="reason-item">
+      <div class="reason-icon">🕐</div>
+      <div class="reason-body">
+        <p class="reason-title">最初の1ヶ月、焼き場に立たせない</p>
+        <p class="reason-text">
+          入ってすぐ現場に放り込む、ということをしません。仕込みと洗い物をしながら、大将が焼くのを横で見ることに1ヶ月使います。焼き方を"見て覚える"時間を、ちゃんと用意しています。
+        </p>
+      </div>
+    </div>
+
+    <div class="reason-item">
+      <div class="reason-icon">💬</div>
+      <div class="reason-body">
+        <p class="reason-title">怒られたことがない、と言われる現場</p>
+        <p class="reason-text">
+          お客さんから「怒られたことがない」「分からないことを聞きやすい」とよく言われます。スタッフにとっても、同じ環境です。
+        </p>
+      </div>
+    </div>
+
+    <div class="reason-item">
+      <div class="reason-icon">🪄</div>
+      <div class="reason-body">
+        <p class="reason-title">ここで覚えた技術は、次でも使える</p>
+        <p class="reason-text">
+          以前辞めたスタッフが「ここで覚えたことは次でも使える」と言って店を出ました。大型店の流れ作業とは違う、ちゃんと手に残るものを身につけられる場所です。
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== VOICE ===== -->
+<section data-section="voice">
+  <p class="section-label">VOICE</p>
+  <h2 class="section-title">実際に聞こえてきた言葉</h2>
+
+  <div class="voice-list">
+
+    <div class="voice-card">
+      <div class="voice-quote">❝</div>
+      <p class="voice-text">怒られたことがない</p>
+      <span class="voice-source">— お客さんによく言われること</span>
+    </div>
+
+    <div class="voice-card">
+      <div class="voice-quote">❝</div>
+      <p class="voice-text">分からないことを聞きやすい</p>
+      <span class="voice-source">— お客さんによく言われること</span>
+    </div>
+
+    <div class="voice-card">
+      <div class="voice-quote">❝</div>
+      <p class="voice-text">焼けるようになるまで待ってもらえたから</p>
+      <span class="voice-source">— 3年在籍のスタッフの口ぐせ</span>
+    </div>
+
+    <div class="voice-card">
+      <div class="voice-quote">❝</div>
+      <p class="voice-text">ここで覚えたことは次でも使えますから</p>
+      <span class="voice-source">— 以前のスタッフが店を出るときに言った言葉</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section data-section="cta">
+  <h2 class="cta-heading">
+    未経験でも、大丈夫です。<br>
+    まずは話を聞いてみませんか。
+  </h2>
+  <p class="cta-sub">
+    カウンター8席の小さな焼鳥屋です。<br>
+    名前を覚えてから、一緒に働きましょう。
+  </p>
+  <span class="cta-btn" role="button" aria-disabled="true">今すぐ応募する</span>
+  <p class="cta-note">応募・お問い合わせ先：○○</p>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer data-section="footer">
+  <p class="footer-name">炭火焼鳥 とりき（架空店舗）</p>
+  <p class="footer-note">制作サンプル｜実在の店舗ではありません</p>
+  <p class="footer-note">掲載の募集内容・スタッフの声はすべて架空のものです。ボタンは動作しません。</p>
+  <p class="footer-copy">© 炭火焼鳥 とりき All rights reserved.</p>
+</footer>
+
+
+</body></html>
