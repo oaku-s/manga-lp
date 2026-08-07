@@ -1,0 +1,771 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>炭火焼鳥 とりき｜求人募集｜制作サンプル</title>
+<style>
+  :root {
+    --bg-base: #1a1410;               /* ページ全体の背景 */
+    --bg-section-alt: #211c17;        /* 交互セクションの背景 */
+    --bg-section-dark: #0f0d0b;       /* 暗いセクションの背景 */
+    --bg-section-mid: #1e1812;        /* 中間の暗さのセクション背景 */
+    --bg-slot-hero: #2e2118;          /* heroの写真枠の背景 */
+    --bg-slot-about: #1c1510;         /* aboutの写真枠の背景 */
+    --bg-slot-craft: #251c13;         /* craftの写真枠の背景 */
+    --bg-slot-voice: #1a1410;         /* voiceの写真枠の背景 */
+
+    --text-base: #d4c8b8;             /* 本文の文字色 */
+    --text-heading: #f0e6d2;          /* 見出しの文字色 */
+    --text-sub: #9e8e7a;              /* サブテキスト・注釈の文字色 */
+    --text-emphasis: #e8c87a;         /* 本文中の強調文字色 */
+    --text-hero-catch: #f5ece0;       /* ファーストビューのキャッチコピー */
+    --text-hero-sub: #b8a898;         /* ファーストビューのサブコピー */
+    --text-slot-label: #7a6858;       /* 写真枠のラベル文字色 */
+    --text-quote: #c8b898;            /* 引用・セリフの文字色 */
+    --text-info-label: #9e8e7a;       /* 店舗情報のラベル文字色 */
+    --text-info-value: #d4c8b8;       /* 店舗情報の値の文字色 */
+    --text-footer: #6a5a4a;           /* フッターの文字色 */
+    --text-cta-btn: #1a1410;          /* CTAボタンの文字色 */
+    --text-section-label: #e8a050;    /* セクション番号・ラベル */
+
+    --accent: #e8883a;                /* メインアクセント（炭火オレンジ） */
+    --accent-label: #e8883a;          /* ラベルに使うアクセント */
+    --accent-line: #c06828;           /* 罫線に使うアクセント */
+    --accent-fill: #e8883a;           /* ボタン塗りに使うアクセント */
+    --accent-glow: #e8883a;           /* 光彩・影に使うアクセント */
+    --accent-muted: #8a4e20;          /* 控えめなアクセント（墨色寄り） */
+
+    --border-base: #2e2418;           /* 汎用ボーダー */
+    --border-accent: #c06828;         /* アクセントカラーのボーダー */
+    --border-quote: #5a3e28;          /* 引用ブロックのボーダー */
+    --border-info: #2a2018;           /* 店舗情報テーブルの区切り */
+
+    --bg-cta: #0f0d0b;                /* CTAセクションの背景 */
+    --bg-btn: #e8883a;                /* CTAボタンの背景 */
+    --bg-btn-hover: #d07828;          /* CTAボタンhover時の背景 */
+    --bg-empathy-item: #1e1710;       /* 共感アイテムの背景 */
+    --border-empathy: #3a2a18;        /* 共感アイテムのボーダー */
+
+    --shadow-accent: #e8883a;         /* アクセントカラーの影色 */
+    --shadow-dark: #000000;           /* 暗い影色 */
+
+    --font-base: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Noto Sans JP', sans-serif;  /* 本文フォント */
+    --font-serif: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif;              /* 見出し・引用フォント */
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-base);
+    font-family: var(--font-base);
+    line-height: 1.8;
+    max-width: 480px;
+    margin: 0 auto;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* 写真枠 共通 */
+  .photo-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 4 / 3;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--text-slot-label);
+    width: 100%;
+  }
+
+  /* ========== HERO ========== */
+  [data-section="hero"] {
+    background-color: var(--bg-section-dark);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  [data-section="hero"] .photo-slot {
+    background-color: var(--bg-slot-hero);
+    aspect-ratio: 3 / 4;
+    position: relative;
+  }
+
+  [data-section="hero"] .photo-slot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 40%, var(--bg-section-dark) 100%);
+  }
+
+  [data-section="hero"] .hero-content {
+    padding: 0 24px 48px;
+    margin-top: -80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  [data-section="hero"] .hero-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: var(--accent-label);
+    font-family: var(--font-base);
+    display: block;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  [data-section="hero"] h1 {
+    font-family: var(--font-serif);
+    font-size: 1.75rem;
+    line-height: 1.5;
+    color: var(--text-hero-catch);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 16px;
+  }
+
+  [data-section="hero"] h1 em {
+    font-style: normal;
+    color: var(--text-emphasis);
+  }
+
+  [data-section="hero"] .hero-sub {
+    font-size: 0.88rem;
+    color: var(--text-hero-sub);
+    line-height: 1.9;
+    letter-spacing: 0.04em;
+  }
+
+  [data-section="hero"] .shop-name {
+    display: block;
+    margin-top: 28px;
+    font-family: var(--font-serif);
+    font-size: 0.78rem;
+    letter-spacing: 0.22em;
+    color: var(--text-sub);
+    border-top: 1px solid var(--border-accent);
+    padding-top: 14px;
+  }
+
+  /* ========== EMPATHY ========== */
+  [data-section="empathy"] {
+    background-color: var(--bg-section-alt);
+    padding: 56px 24px;
+  }
+
+  [data-section="empathy"] .section-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: var(--text-section-label);
+    display: block;
+    margin-bottom: 20px;
+  }
+
+  [data-section="empathy"] h2 {
+    font-family: var(--font-serif);
+    font-size: 1.35rem;
+    line-height: 1.7;
+    color: var(--text-heading);
+    margin-bottom: 32px;
+    letter-spacing: 0.04em;
+  }
+
+  [data-section="empathy"] .empathy-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  [data-section="empathy"] .empathy-list li {
+    background-color: var(--bg-empathy-item);
+    border: 1px solid var(--border-empathy);
+    border-left: 3px solid var(--accent-line);
+    padding: 16px 18px;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text-base);
+    letter-spacing: 0.03em;
+  }
+
+  [data-section="empathy"] .empathy-closing {
+    margin-top: 32px;
+    font-size: 0.92rem;
+    line-height: 1.9;
+    color: var(--text-base);
+    letter-spacing: 0.03em;
+  }
+
+  [data-section="empathy"] .empathy-closing strong {
+    color: var(--text-emphasis);
+  }
+
+  /* ========== ABOUT ========== */
+  [data-section="about"] {
+    background-color: var(--bg-section-dark);
+    padding: 56px 24px;
+  }
+
+  [data-section="about"] .section-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: var(--text-section-label);
+    display: block;
+    margin-bottom: 20px;
+  }
+
+  [data-section="about"] h2 {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    line-height: 1.7;
+    color: var(--text-heading);
+    margin-bottom: 28px;
+    letter-spacing: 0.04em;
+  }
+
+  [data-section="about"] .photo-slot {
+    background-color: var(--bg-slot-about);
+    margin-bottom: 28px;
+  }
+
+  [data-section="about"] .about-body {
+    font-size: 0.92rem;
+    line-height: 2.0;
+    color: var(--text-base);
+    letter-spacing: 0.04em;
+  }
+
+  [data-section="about"] .about-body p + p {
+    margin-top: 20px;
+  }
+
+  [data-section="about"] .about-body em {
+    font-style: normal;
+    color: var(--text-emphasis);
+  }
+
+  [data-section="about"] .about-profile {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-base);
+    font-size: 0.8rem;
+    color: var(--text-sub);
+    letter-spacing: 0.06em;
+    line-height: 1.8;
+  }
+
+  /* ========== CRAFT ========== */
+  [data-section="craft"] {
+    background-color: var(--bg-section-alt);
+    padding: 56px 24px;
+  }
+
+  [data-section="craft"] .section-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: var(--text-section-label);
+    display: block;
+    margin-bottom: 20px;
+  }
+
+  [data-section="craft"] h2 {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    line-height: 1.7;
+    color: var(--text-heading);
+    margin-bottom: 28px;
+    letter-spacing: 0.04em;
+  }
+
+  [data-section="craft"] .photo-slot {
+    background-color: var(--bg-slot-craft);
+    margin-bottom: 28px;
+  }
+
+  [data-section="craft"] .craft-body {
+    font-size: 0.92rem;
+    line-height: 2.0;
+    color: var(--text-base);
+    letter-spacing: 0.04em;
+  }
+
+  [data-section="craft"] .craft-body p + p {
+    margin-top: 20px;
+  }
+
+  [data-section="craft"] .craft-body em {
+    font-style: normal;
+    color: var(--text-emphasis);
+  }
+
+  [data-section="craft"] .craft-note {
+    margin-top: 24px;
+    padding: 18px 20px;
+    border-left: 3px solid var(--accent-line);
+    background-color: var(--bg-section-dark);
+    font-size: 0.88rem;
+    line-height: 1.9;
+    color: var(--text-quote);
+    font-family: var(--font-serif);
+    letter-spacing: 0.04em;
+  }
+
+  /* ========== REGULAR ========== */
+  [data-section="regular"] {
+    background-color: var(--bg-section-dark);
+    padding: 56px 24px;
+  }
+
+  [data-section="regular"] .section-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: var(--text-section-label);
+    display: block;
+    margin-bottom: 20px;
+  }
+
+  [data-section="regular"] h2 {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    line-height: 1.7;
+    color: var(--text-heading);
+    margin-bottom: 28px;
+    letter-spacing: 0.04em;
+  }
+
+  [data-section="regular"] .photo-slot {
+    background-color: var(--bg-slot-voice);
+    margin-bottom: 28px;
+  }
+
+  [data-section="regular"] .regular-quote {
+    border-left: 3px solid var(--border-quote);
+    padding: 20px 20px;
+    background-color: var(--bg-section-alt);
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    line-height: 1.9;
+    color: var(--text-quote);
+    letter-spacing: 0.04em;
+    position: relative;
+  }
+
+  [data-section="regular"] .regular-quote::before {
+    content: '「';
+    font-size: 2rem;
+    color: var(--accent-muted);
+    line-height: 1;
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--font-serif);
+  }
+
+  [data-section="regular"] .regular-source {
+    margin-top: 16px;
+    font-size: 0.78rem;
+    color: var(--text-sub);
+    letter-spacing: 0.08em;
+  }
+
+  [data-section="regular"] .regular-body {
+    margin-top: 28px;
+    font-size: 0.92rem;
+    line-height: 2.0;
+    color: var(--text-base);
+    letter-spacing: 0.04em;
+  }
+
+  /* ========== VOICE ========== */
+  [data-section="voice"] {
+    background-color: var(--bg-section-alt);
+    padding: 56px 24px;
+  }
+
+  [data-section="voice"] .section-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: var(--text-section-label);
+    display: block;
+    margin-bottom: 20px;
+  }
+
+  [data-section="voice"] h2 {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    line-height: 1.7;
+    color: var(--text-heading);
+    margin-bottom: 32px;
+    letter-spacing: 0.04em;
+  }
+
+  [data-section="voice"] .voice-card {
+    background-color: var(--bg-section-dark);
+    border: 1px solid var(--border-base);
+    padding: 24px 20px;
+    margin-bottom: 16px;
+  }
+
+  [data-section="voice"] .voice-card:last-child {
+    margin-bottom: 0;
+  }
+
+  [data-section="voice"] .voice-tag {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    color: var(--accent-label);
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  [data-section="voice"] .voice-text {
+    font-family: var(--font-serif);
+    font-size: 0.98rem;
+    line-height: 1.9;
+    color: var(--text-quote);
+    letter-spacing: 0.04em;
+  }
+
+  [data-section="voice"] .voice-text::before {
+    content: '「';
+  }
+
+  [data-section="voice"] .voice-text::after {
+    content: '」';
+  }
+
+  [data-section="voice"] .voice-note {
+    margin-top: 12px;
+    font-size: 0.82rem;
+    color: var(--text-sub);
+    line-height: 1.7;
+    letter-spacing: 0.03em;
+  }
+
+  /* ========== INFO ========== */
+  [data-section="info"] {
+    background-color: var(--bg-section-dark);
+    padding: 56px 24px;
+  }
+
+  [data-section="info"] .section-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: var(--text-section-label);
+    display: block;
+    margin-bottom: 20px;
+  }
+
+  [data-section="info"] h2 {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    line-height: 1.7;
+    color: var(--text-heading);
+    margin-bottom: 32px;
+    letter-spacing: 0.04em;
+  }
+
+  [data-section="info"] .info-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  [data-section="info"] .info-table tr {
+    border-bottom: 1px solid var(--border-info);
+  }
+
+  [data-section="info"] .info-table tr:first-child {
+    border-top: 1px solid var(--border-info);
+  }
+
+  [data-section="info"] .info-table th {
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    color: var(--text-info-label);
+    font-weight: normal;
+    font-family: var(--font-base);
+    padding: 16px 0 16px;
+    width: 36%;
+    vertical-align: top;
+    text-align: left;
+  }
+
+  [data-section="info"] .info-table td {
+    font-size: 0.9rem;
+    color: var(--text-info-value);
+    padding: 16px 0 16px 8px;
+    vertical-align: top;
+    line-height: 1.7;
+    letter-spacing: 0.03em;
+  }
+
+  /* ========== CTA ========== */
+  [data-section="cta"] {
+    background-color: var(--bg-cta);
+    padding: 64px 24px;
+    text-align: center;
+    border-top: 1px solid var(--border-accent);
+  }
+
+  [data-section="cta"] .cta-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: var(--text-section-label);
+    display: block;
+    margin-bottom: 20px;
+  }
+
+  [data-section="cta"] h2 {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    line-height: 1.7;
+    color: var(--text-heading);
+    margin-bottom: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  [data-section="cta"] .cta-sub {
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    line-height: 1.8;
+    margin-bottom: 36px;
+    letter-spacing: 0.04em;
+  }
+
+  [data-section="cta"] .cta-btn {
+    display: block;
+    width: 100%;
+    padding: 20px 24px;
+    background-color: var(--bg-btn);
+    color: var(--text-cta-btn);
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 24px var(--shadow-accent);
+    transition: background-color 0.2s;
+  }
+
+  [data-section="cta"] .cta-btn:hover {
+    background-color: var(--bg-btn-hover);
+  }
+
+  /* サンプルのため無効化したボタン */
+  [data-section="cta"] .cta-btn[aria-disabled="true"],
+  [data-section="cta"] .cta-btn[aria-disabled="true"]:hover {
+    background-color: var(--bg-btn);
+    cursor: default;
+  }
+
+  [data-section="cta"] .cta-note {
+    margin-top: 16px;
+    font-size: 0.76rem;
+    color: var(--text-sub);
+    letter-spacing: 0.06em;
+  }
+
+  /* ========== FOOTER ========== */
+  [data-section="footer"] {
+    background-color: var(--bg-section-dark);
+    padding: 32px 24px;
+    text-align: center;
+    border-top: 1px solid var(--border-base);
+  }
+
+  [data-section="footer"] .footer-shop {
+    font-family: var(--font-serif);
+    font-size: 0.9rem;
+    letter-spacing: 0.16em;
+    color: var(--text-footer);
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  [data-section="footer"] .footer-note {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--text-sub);
+    line-height: 1.8;
+    margin-bottom: 10px;
+  }
+
+  [data-section="footer"] .footer-copy {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: var(--text-footer);
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== 1. HERO ========== -->
+<section data-section="hero">
+  <!-- 写真差し替え位置：店の外観または炭火の焼き場 -->
+  <div class="photo-slot" data-slot="hero"><span>店の外観・炭火の焼き場</span></div>
+  <div class="hero-content">
+    <span class="hero-label">炭火焼鳥 とりき｜求人募集</span>
+    <h1>教えてもらいながら、<br><em>手に職をつける</em>場所が<br>ここにある。</h1>
+    <p class="hero-sub">カウンター8席の小さな炭火焼鳥店。<br>大将の隣で、じっくり覚えていく。<br>未経験歓迎。一人ひとりに向き合います。</p>
+    <span class="shop-name">炭火焼鳥 とりき</span>
+  </div>
+</section>
+
+<!-- ========== 2. EMPATHY ========== -->
+<section data-section="empathy">
+  <span class="section-label">EMPATHY</span>
+  <h2>こんなことを<br>感じていませんか。</h2>
+  <ul class="empathy-list">
+    <li>教えてもらえないまま、現場に放り込まれた。</li>
+    <li>名前も覚えられないまま辞めていく、そんな職場に疲れた。</li>
+    <li>シフトの希望が通らなくて、働き続けることが辛くなってきた。</li>
+  </ul>
+  <p class="empathy-closing">
+    大型店の流れ作業の中で、自分が何者かも分からないまま時間だけが過ぎていく——<br><br>
+    そういう経験をしてきた人に、<strong>「とりき」は声をかけています。</strong>
+  </p>
+</section>
+
+<!-- ========== 3. ABOUT ========== -->
+<section data-section="about">
+  <span class="section-label">ABOUT</span>
+  <h2>なぜ、カウンター<br>8席にしたのか。</h2>
+  <!-- 写真差し替え位置：大将（店主）の写真 -->
+  <div class="photo-slot" data-slot="about"><span>大将（店主）の写真</span></div>
+  <div class="about-body">
+    <p>都内の老舗で修業を重ねたあと、この街に店を構えました。</p>
+    <p>席数を増やせば売り上げは上がるかもしれない。それでもカウンター8席にしたのは、<em>顔を覚えていたかったから。</em></p>
+    <p>来てくれるお客さんも、一緒に働くスタッフも、名前と顔が一致する距離でいたい。それが、この店を続けている理由です。</p>
+  </div>
+  <p class="about-profile">
+    店主｜男性・40代<br>
+    白い作業着と手ぬぐいが仕事のしるし。<br>
+    口数は多くないが、困っているときは必ず気づく。
+  </p>
+</section>
+
+<!-- ========== 4. CRAFT ========== -->
+<section data-section="craft">
+  <span class="section-label">CRAFT</span>
+  <h2>最初の1ヶ月、<br>焼き場には立たせない。</h2>
+  <!-- 写真差し替え位置：仕込みや洗い物の作業風景 -->
+  <div class="photo-slot" data-slot="craft"><span>仕込み・洗い物の作業風景</span></div>
+  <div class="craft-body">
+    <p>新しく入った人には、最初の1ヶ月間、焼き場に立ってもらいません。</p>
+    <p>仕込みをして、洗い物をして、その傍らで大将が焼くのをじっくり横から見てもらう。それが、とりきの始め方です。</p>
+    <p>いきなり炭の前に立っても、見よう見まねでは身につかない。<em>隣で見て、体で覚えて、それから自分の手で焼く。</em>その順番を崩しません。</p>
+  </div>
+  <div class="craft-note">
+    「焼けるようになるまで待ってもらえたから」<br>——3年いるスタッフの言葉
+  </div>
+</section>
+
+<!-- ========== 5. REGULAR ========== -->
+<section data-section="regular">
+  <span class="section-label">STAFF VOICE</span>
+  <h2>3年いるスタッフが<br>こう言っています。</h2>
+  <!-- 写真差し替え位置：スタッフが働いている様子 -->
+  <div class="photo-slot" data-slot="regular"><span>スタッフが働いている様子</span></div>
+  <div class="regular-quote">
+    焼けるようになるまで待ってもらえたから、今も続けられています。
+  </div>
+  <p class="regular-source">——在籍3年のスタッフ</p>
+  <p class="regular-body">
+    急かされることなく、自分のペースで覚えることができた。そういう環境が、長く続けられる理由になっています。
+  </p>
+</section>
+
+<!-- ========== 6. VOICE ========== -->
+<section data-section="voice">
+  <span class="section-label">WORDS</span>
+  <h2>実際にいただいた<br>言葉たち。</h2>
+
+  <div class="voice-card">
+    <span class="voice-tag">お客さんから</span>
+    <p class="voice-text">怒られたことがない</p>
+  </div>
+
+  <div class="voice-card">
+    <span class="voice-tag">お客さんから</span>
+    <p class="voice-text">分からないことを聞きやすい</p>
+  </div>
+
+  <div class="voice-card">
+    <span class="voice-tag">以前働いていたスタッフから</span>
+    <p class="voice-text">ここで覚えたことは次でも使える</p>
+    <p class="voice-note">店を出るときに言い残していった言葉。今も大将の心に残っています。</p>
+  </div>
+</section>
+
+<!-- ========== 7. INFO ========== -->
+<section data-section="info">
+  <span class="section-label">SHOP INFO</span>
+  <h2>店舗情報</h2>
+  <table class="info-table">
+    <tr>
+      <th>店名</th>
+      <td>炭火焼鳥 とりき</td>
+    </tr>
+    <tr>
+      <th>住所</th>
+      <td>◯◯</td>
+    </tr>
+    <tr>
+      <th>アクセス</th>
+      <td>◯◯</td>
+    </tr>
+    <tr>
+      <th>営業時間</th>
+      <td>◯◯</td>
+    </tr>
+    <tr>
+      <th>定休日</th>
+      <td>◯◯</td>
+    </tr>
+    <tr>
+      <th>席数</th>
+      <td>カウンター8席</td>
+    </tr>
+    <tr>
+      <th>電話番号</th>
+      <td>◯◯</td>
+    </tr>
+    <tr>
+      <th>応募方法</th>
+      <td>◯◯</td>
+    </tr>
+  </table>
+</section>
+
+<!-- ========== 8. CTA ========== -->
+<section data-section="cta">
+  <span class="cta-label">RECRUIT</span>
+  <h2>一緒に、炭火の前に<br>立ちませんか。</h2>
+  <p class="cta-sub">未経験でも大丈夫です。<br>最初の1ヶ月は、隣で見るところから始めます。</p>
+  <span class="cta-btn" role="button" aria-disabled="true">今すぐ応募する</span>
+  <p class="cta-note">まずはお気軽にご連絡ください</p>
+</section>
+
+<!-- ========== 9. FOOTER ========== -->
+<footer data-section="footer">
+  <span class="footer-shop">炭火焼鳥 とりき（架空店舗）</span>
+  <p class="footer-note">制作サンプル｜実在の店舗ではありません</p>
+  <p class="footer-note">掲載の募集内容・店舗情報・スタッフの声はすべて架空のものです。ボタンは動作しません。</p>
+  <p class="footer-copy">&copy; 炭火焼鳥 とりき All Rights Reserved.</p>
+</footer>
+
+</body>
+</html>
