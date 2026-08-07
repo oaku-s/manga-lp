@@ -2,7 +2,7 @@
 <html lang="ja"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>炭火焼鳥 とりき</title>
+<title>炭火焼鳥 とりき｜制作サンプル</title>
 <style>
 /* ══════════════════════════════════════════
    デザイン変数
@@ -343,6 +343,12 @@ a {
   box-shadow: 0 4px 16px var(--shadow-cta-btn);
   cursor: pointer;
 }
+
+/* サンプルのため無効化したボタン */
+.cta-btn[aria-disabled="true"],
+.cta-btn[aria-disabled="true"]:hover {
+  cursor: default;
+}
 .cta-note {
   font-size: 0.75rem;
   color: var(--text-faint);
@@ -383,6 +389,13 @@ footer {
   color: var(--text-heading);
   letter-spacing: 0.2em;
   margin-bottom: 6px;
+}
+.footer-note {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+  line-height: 1.8;
+  margin-bottom: 8px;
 }
 .footer-copy {
   font-size: 0.7rem;
@@ -556,7 +569,7 @@ footer {
     今夜、仕事帰りに寄ってみませんか。<br>
     一人でも、予約なしでも、ご相談ください。
   </p>
-  <a href="tel:○○○○-○○-○○○○" class="cta-btn">今すぐ予約・相談する</a>
+  <span class="cta-btn" role="button" aria-disabled="true">今すぐ予約・相談する</span>
   <p class="cta-note">
     お電話またはご来店にてお気軽にどうぞ。<br>
     一人客大歓迎です。
@@ -579,7 +592,9 @@ footer {
 
 <!-- 7. フッター -->
 <footer data-section="footer">
-  <p class="footer-name">炭火焼鳥 とりき</p>
+  <p class="footer-name">炭火焼鳥 とりき（架空店舗）</p>
+  <p class="footer-note">制作サンプル｜実在の店舗ではありません</p>
+  <p class="footer-note">掲載の店舗情報・お客様の声はすべて架空のものです。ボタンは動作しません。</p>
   <p class="footer-copy">© 炭火焼鳥 とりき All rights reserved.</p>
 </footer>
 
