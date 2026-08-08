@@ -41,6 +41,7 @@ const HEADERS = [
   "トーン",
   "カラーイメージ",
   "参考LP URL",
+  "DriveフォルダID",
 ];
 
 /** フォームの項目名 → 列ヘッダー。ツール側の collectFormData のキーと対応する。 */
@@ -83,6 +84,10 @@ function doPost(e) {
         return jsonOutput(createProject(body.values || {}, body.status));
       case "update":
         return jsonOutput(updateProject(body.projectId, body.values || {}, body.status));
+      case "startGeneration":
+        return jsonOutput(startGeneration(body));
+      case "uploadFile":
+        return jsonOutput(uploadGenerationFile(body));
       default:
         return jsonOutput({ error: "不明な action: " + body.action });
     }

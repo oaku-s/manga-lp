@@ -1044,6 +1044,10 @@ if (generateLpButton) {
         : "HTMLをダウンロード";
       downloadLpButton.hidden = false;
 
+      // Driveへの保存と記録。ここより上で生成物とダウンロードは既に手元にあるので、
+      // 記録が失敗しても作業は止めない。ボタンを押させず生成のたびに自動で走らせる
+      autoRecordGeneration(data);
+
     } catch (error) {
       lpStatus.textContent = `エラー: ${error.message}`;
     } finally {
@@ -1758,4 +1762,75 @@ if (projectSelect) {
   refreshProjectList().catch((error) => {
     setProjectStatus(`案件一覧を取得できませんでした: ${error.message}`);
   });
+}
+
+// ── 生成結果の自動記録 ───────────────────────────────────────────────
+// 生成のたびに Drive の新しい版フォルダへ保存し、`生成結果` に1行足す。
+// ボタンは挟まない。記録が失敗しても生成物は手元にあり、ダウンロードもできる。
+
+/** UTF-8のまま base64 にする。btoa は素の文字列だと日本語で落ちる */
+function base64FromText(text) {
+  const bytes = new TextEncoder().encode(text);
+  let binary = "";
+  const chunk = 0x8000; // 一度に渡しすぎると引数の上限に当たる
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+function mimeFromDataUrl(dataUrl) {
+  return (String(dataUrl).match(/^data:([^;,]+)/) || [])[1] || "application/octet-stream";
+}
+
+/**
+ * 記録先の案件ID。未選択なら今のフォーム内容で案件を作る。
+ * ここで選ばせると入力ゼロが崩れるので、黙って作って選択状態に寄せる。
+ */
+async function ensureProjectIdForRecord() {
+  const selected = projectSelect ? projectSelect.value : "";
+  if (selected) return selected;
+
+  const created = await callProjectsApi("create", { values: collectProjectValues() });
+  await refreshProjectList(created.projectId).catch(() => {});
+  if (saveModeSelect) saveModeSelect.value = "update";
+  return created.projectId;
+}
+
+async function autoRecordGeneration(formData) {
+  try {
+    const projectId = await ensureProjectIdForRecord();
+
+    const started = await callProjectsApi("startGeneration", {
+      projectId: projectId,
+      shopName: formData.businessName,
+      lpType: formData.lpType,
+      format: formData.format,
+    });
+
+    // ファイルは1つずつ送る。まとめると中継する Vercel Functions のボディ上限に当たる
+    await callProjectsApi("uploadFile", {
+      versionFolderId: started.versionFolderId,
+      path: "index.html",
+      mimeType: "text/html",
+      dataBase64: base64FromText(generatedLpHtml),
+    });
+
+    for (const media of generatedLpMedia) {
+      await callProjectsApi("uploadFile", {
+        versionFolderId: started.versionFolderId,
+        path: media.path,
+        mimeType: mimeFromDataUrl(media.dataUrl),
+        dataBase64: dataUrlToBase64(media.dataUrl),
+      });
+    }
+
+    lpStatus.textContent +=
+      `／Driveのv${started.version}に保存し、${started.generationId} として記録しました。`;
+    return started;
+  } catch (error) {
+    // 記録は関門にしない。失敗を伝えるだけで、生成物とダウンロードはそのまま使える
+    lpStatus.textContent += `／Driveへの記録に失敗しました（${error.message}）。作業は続行できます。`;
+    return null;
+  }
 }

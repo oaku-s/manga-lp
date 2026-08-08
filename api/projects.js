@@ -4,7 +4,7 @@
 // トークンは必ずこちら側の環境変数に置く。ブラウザの通信相手が同一オリジンになるため、
 // CORS のプリフライトも発生しない。
 
-const ALLOWED_ACTIONS = ["list", "get", "create", "update"];
+const ALLOWED_ACTIONS = ["list", "get", "create", "update", "startGeneration", "uploadFile"];
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
